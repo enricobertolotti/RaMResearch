@@ -1,0 +1,27 @@
+// MDL v1 utf8
+license  {
+  version = 1
+  owner  {
+    id = ISI
+    mail = "M.vanStralen-2@umcutrecht.nl"
+    fullName = "ISI Institutional License - SDK"
+    info = "Image Sciences Institute (ISI)
+University Medical Center Utrecht
+Heidelberglaan 100
+3584 CX Utrecht
+The Netherlands"
+  }
+  publicKey = "MFowDQYJKoZIhvcNAQEBBQADSQAwRgJBAL5zBJEfyQTZjdKa3uZvDZuh6YZ4n0lYj/dLGyesX9PmFXTwus4iAzD/0FYEWXgljMklL77ejhLcNedR/y8pzZsCARE=:LURNL5e1sE8yYSlajJHIc2+9a2kD+2Xwm2C+XHrdfEY2NqkNhlsJ0gqlLIY362wz7aFV86euZEj70fFpYKg3Nw=="
+  privateKey = MIIBUgIBADANBgkqhkiG9w0BAQEFAASCATwwggE4AgEAAkEAvnMEkR/JBNmN0pre5m8Nm6HphnifSViP90sbJ6xf0+YVdPC6ziIDMP/QVgRZeCWMySUvvt6OEtw151H/LynNmwIBEQJAOAO2DJDgxTDtei2M2lzl4nrqVLoQuzgqV8rLwF/f8wbtyrY32O/WzWFm6ka6aFsDomc51+pruLMyBtl56QRL8QIhANcOEPTPJbFwe61mNNqiNWzAmkpFGeCziQRBm8gNRJkbAiEA4rWnboPM3dMFxQZ4nqZURuBfIM7a2LglISgF/wmjZYECICXzbGdv2XmqcC2on+pY3EBeOVhmjBiYJzz8hOcRZnVfAiA1V+spD/P39WrE8na76uanQ9ol1lGcZ5BECWrSmNsm8QIhAKF/SyQOvlkDhuuI0QIerVK26lyW6u/xlTpy5k3XMvu8
+  features = "developer cmdline"
+  expire = 2020-06-01
+  supportExpire = 2020-05-01
+  platform = "win32 macos linux"
+}
+
+//# MeVis signature v1
+//# key: MFowDQYJKoZIhvcNAQEBBQADSQAwRgJBAMeLETzkPHPnL1KsR5qcOQt4BvOW45JJNylp9i1HhuReLh/ETjOC6+phJqVGFGKr79pz8N91wab8foGG5JDXJfUCARE=:ehGXgq+oC6lqURdCqYfkoCUziwG1U1AGhUvPZAmZRQOdbAmFGrnwJxgt/2tF9MeOlO43H5dbN4Oh0Ne305daAA==
+//# owner: MeVis LicenseManager
+//# date: 2019-04-30T18:35:58
+//# hash: RBAlCxseOnMgnfN3zCkevSFLgAHnAA6Yb9ML3Fp2QGrztE5tXUcpWeD3Y7Yi0PBSRqaZ1jNdIfOHMt10gLEMHg==
+//# MeVis end

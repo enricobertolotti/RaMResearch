@@ -1,0 +1,6 @@
+Detected Ring Angle = (13, [8426093.0, (2, 13, 12)])
+Detected Ring Angle = (13, [8426093.0, (2, 13, 12)])
+130226_First_130226_First_mod_rest
+Detected Ring Angle = (13, [8426093.0, (2, 13, 12)])
+130226_First_130226_First_mod_rest
+Detected Ring Angle = (13, [8426093.0, (2, 13, 12)])

@@ -1,0 +1,9 @@
+Ring Position = [101, 99, 140]
+Ring Position = [101, 98, 145]
+Ring Position = [126, 102, 170]
+Ring Position = [122, 157, 166]
+Ring Position = [120, 158, 172]
+
+Ring Diameter = 49
+Ring Position = [120, 158, 172]
+Ring Position = [120, 158, 172]
