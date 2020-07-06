@@ -72,7 +72,6 @@ def import_experimental_dicom(foldername, dicomfilename):
     str_rot = list(map(lambda x: float(x), dicomfile.PatientName.family_name.split(",")))
     dicomobject.rotation = (str_rot[0], str_rot[1])
 
-    # TODO implement if depth is recorded
     depth = dicomfile.PatientName.given_name.replace(",", ".")
 
     if len(depth) > 0:

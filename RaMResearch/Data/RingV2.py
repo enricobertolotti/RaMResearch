@@ -115,13 +115,10 @@ class RingPointCloud:
     image_outline: [RingImage] = None
     image_filled: [RingImage] = None
 
-    # TODO Define surface normals for each point
-
     def __init__(self, lg_radius, sm_radius):
         self.radius_large = np.max([lg_radius, sm_radius])
         self.radius_small = np.min([lg_radius, sm_radius])
         self.ref_circle = [[self.radius_large, theta, 0] for theta in range(360)]
-        # self.create_hull()
         self.create_filled()
         self.crosscut_point = [0, 0, -self.radius_large]
 
@@ -170,26 +167,6 @@ class RingPointCloud:
                 # Save image
                 self.image_filled.save()
             return self.image_filled
-
-    # TODO: Outdated, needs to be removed
-    # def save(self, compressed=True):
-    #
-    #     # Translate Ring array to boolean array
-    #     array = self.image.get_image().astype('bool')
-    #
-    #     default_folder = "/Users/enricobertolotti/PycharmProjects/BScAssignment/RaMData/Numpy_Ring_Definitions"
-    #     save_path = default_folder + '/' + str(self.r_small) + '/' + str(self.r_large) + '/' + str(self.ring_angle)
-    #
-    #     # Create path if necessary
-    #     base_path = Path(save_path)
-    #     base_path.mkdir(parents=True, exist_ok=True)
-    #
-    #     file_prefix = str(self.r_small) + '_' + str(self.r_large) + '_' + str(self.ring_angle) + '_'
-    #
-    #     if self.isfilled:
-    #         np.savez_compressed(save_path + '/' + file_prefix + "filled", data=array)
-    #     else:
-    #         np.savez_compressed(save_path + '/' + file_prefix + "outline", data=array)
 
 
 def create_ring_image(ringcloud: RingPointCloud, outline=True, morph_operations=True,
@@ -329,8 +306,6 @@ def export_ring_array(array, r_small, r_large, ring_angle, array_type="filled"):
     base_path.mkdir(parents=True, exist_ok=True)
 
     file_prefix = str(r_small) + '_' + str(r_large) + '_' + str(ring_angle) + '_'
-
-    # TODO save ring compressed
 
     if array_type == "filled":
         np.savez_compressed(save_path + '/' + file_prefix + "filled", data=array)

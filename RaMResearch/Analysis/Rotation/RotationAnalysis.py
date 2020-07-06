@@ -83,7 +83,6 @@ class RotationAnalysis:
             # intrfce.imageview3d(cropped_ring_im, windowName="Test View Ring Image Cropped")
 
             # Pattern match images
-            # TODO: Implement this
             time1 = time.time()
             print("Correlating...")
             crs_corr = arrayops.multiply_w_offset(crs_corr_image, cropped_ring_im,

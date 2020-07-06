@@ -131,7 +131,6 @@ def position_determination_with_correlation(dicomfile, view=False):
     # 3D correlation array
     convolvedvolume = hf.findPatternInImageTemplate(dicomfile.get_image("filtered").get_array(), dicomfile.pattern)
 
-    # TODO Check the need for normalization
     # Normalize the corollated array ==> although check the
     convolvednormalized = hf.normalize(convolvedvolume)
     a = np.min(convolvednormalized), np.max(convolvednormalized)

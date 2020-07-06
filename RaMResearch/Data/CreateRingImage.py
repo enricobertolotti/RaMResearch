@@ -29,8 +29,6 @@ class RingPointCloud:
     # Define Point Array
     point_cloud = None
 
-    # TODO Define surface normals for each point
-
     def __init__(self, lg_radius, sm_radius):
         self.radius_large = lg_radius
         self.radius_small = sm_radius

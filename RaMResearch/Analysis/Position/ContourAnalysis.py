@@ -38,7 +38,6 @@ class Contour:
 
     def clear_variables(self):
         self.contour = None
-        self.center = None
         self.area = 0
         self.tilt = 0
         self.is_ring_contour = False
@@ -121,7 +120,6 @@ class ContourConnection:
         self.calc_global_weight()
 
     def clear_variables(self):
-        self.contour_1, self.contour_2 = None, None
         self.distance, self.angle = 0, 0
         self.distance_weight, self.angle_weight, self.size_weight = 0, 0, 0
         self.global_weight = 0
@@ -221,14 +219,12 @@ class SliceContourAnalysis:
         self.create_contours(image)     # Create contours on image
         self.calc_ring_contour()        # Calculate ring contour
         self.sort_contours()
-        debug = 1
 
     def clear_variables(self):
         self.slice_depth = -1
         self.slice_image = np.empty((0, 0))
         self.all_contours = []
         self.all_contour_combinations = []
-        self.ring_contour = None
         self.is_main_ring_slc = False
 
     # Method to create contours from image
@@ -280,7 +276,7 @@ class SliceContourAnalysis:
             for contour in self.all_contours:
                 cv2.drawContours(contour_image, contour.contour, -1, 255, 2, cv2.LINE_AA)
         else:
-            contours = np.array([cntr.contour for cntr in [self.ring_contour[0], self.ring_contour[1]]])
+            contours = np.array([cntr.contour for cntr in self.ring_contour.get_all_contours()])
             cv2.drawContours(contour_image, contours, -1, 2, cv2.LINE_AA)
         return cv2.add(base_image, contour_image)
 
@@ -315,7 +311,7 @@ class ContourAnalysis:
             self.image_3d = deepcopy(image)
 
         # Run analysis
-        self.calc_contour(debug=debug)         # Get all contours
+        self.calc_contour()         # Get all contours
         self.calc_ring_contour(debug=debug)    # Determine ring contour
 
     def get_contour_results(self, depth=None):
@@ -330,7 +326,7 @@ class ContourAnalysis:
         else:
             return self.contour_results[depth]
 
-    def calc_contour(self, debug=False):
+    def calc_contour(self):
         self.contour_results = [SliceContourAnalysis(self.image_3d[i, :], i) for i in range(self.image_3d.shape[0])]
 
     # Return ring_contours object if available, else calculate it first
@@ -449,37 +445,3 @@ def get_gauss_dist_norm(layers, plot=False):
         plt.show()
 
     return y_vals
-
-
-
-
-
-# HELPER FUNCTIONS =================================
-
-# def get_contour_angle(contour_1: Contour, contour_2: Contour):
-#     x_dist = contour_1.center.xpos - contour_2.center.xpos
-#     y_dist = contour_1.center.ypos - contour_2.center.ypos
-#     x_dist = x_dist if x_dist != 0 else 0.00000001    # To avoid dividing by 0
-#     angle = np.arctan(y_dist / x_dist) * 180/np.pi
-#     return angle
-
-
-# def get_contour_height_diff(contour_1: Contour, contour_2: Contour):
-#     def diff(size):
-#         return np.clip(abs((size-40)*0.01), 0, 1)
-#     height1, height2 = contour_1.get_height(), contour_2.get_height()
-#     weight =
-#     return weight
-
-
-# def get_target_angle(contour, slice_size_y):
-#     x_dist = contour.center.xpos if contour.center.xpos > 0 else 0.00000001
-#     y_dist = int(slice_size_y/2) - contour.center.ypos
-#     return -np.arctan(y_dist / x_dist) * 180/np.pi
-
-
-# def get_connection_weight_slice(distance_diff, angle_dif, size_diff):
-#     angle_weight = 15  # The amount of degrees that the angle is allowed to differ
-#     distance_weight = 10  # The amount of pixels that the distance is allowed to diifer
-#     weight = np.clip(1 - np.abs(distance_diff/distance_weight) - np.abs(angle_dif/angle_weight) - size_diff, 0, 1)
-#     return weight

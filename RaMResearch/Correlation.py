@@ -1,18 +1,9 @@
 from RaMResearch.Filters.Filtersv2 import shiftarray
 import numpy as np
-# from skimage.feature import match_template
-# from scipy.ndimage import filters
 from scipy.signal import correlate
+import RaMResearch.Utils.General as general
 
 
-# def crs_correlate(array1, array2, template_matching=True):
-#
-#     correlation_res = 1
-#     # correlation_res = match_template(array1, array2)
-#     return correlation_res
-
-
-# TODO look into scipy.signal.oaconvolve (overlap add)
 def crs_convolve(array1, array2, fullRange=False, shift=False, clip=False):
 
     def corr_mag(array_1, array_2):
@@ -42,8 +33,7 @@ def crs_convolve(array1, array2, fullRange=False, shift=False, clip=False):
     test = np.absolute(test)
     print("Sum after: ", np.sum(test))
     print("Min: ", np.min(test), ",  Max: ", np.max(test))
-    print("Uint8 Array: \t Min: " + str(np.min(convolved_array_uint8)) + "\t Max: " + str(np.max(convolved_array_uint8)))
+    general.print_min_max(convolved_array_uint8, name="Uint8 Array")
 
-    # print("Uint16 Array: \t Min: " + str(np.min(convolved_array_uint16)) + "\t Max: " + str(np.max(convolved_array_uint16)))
-
+    # Clip and Return array
     return convolved_array_uint8 if not clip else np.clip(convolved_array_uint8, 0, 255).astype(np.uint8)

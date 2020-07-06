@@ -263,9 +263,6 @@ class Dicomimage:
             else:
                 prev_val = cur_val
 
-        # TODO create check
-        # if self.closestedge_point is None:
-
     def makecountours(self):
         pass
 
@@ -372,7 +369,6 @@ class Dicomimage:
             ringcenter = getarray_around_point((xr, yr, zr + offset), hsize=3, vsize=6)
             brightness.append(np.max(cutout-ringcenter))
 
-        # TODO Make the x-offset dependent on the contour size
         cp = (z + (brightness.index(max(brightness)) + offset_range[0]), x-3, y)
         self.closestedge_point = cp
 
@@ -539,7 +535,6 @@ def import_experimental_dicom(dicomfilename):
     # Set the experimentally recorded rotation and depth in the object
     rotation = tuple(dicomfile.PatientName.family_name.split(","))
 
-    # TODO implement if depth is recorded
     depth = dicomfile.PatientName.given_name.replace(",", ".")
 
     if len(depth) > 0:
