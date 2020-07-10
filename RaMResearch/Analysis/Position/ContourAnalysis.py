@@ -7,7 +7,7 @@ from RaMResearch.Data import DataStructs as ds
 from itertools import combinations
 from scipy.stats import norm
 import matplotlib.pyplot as plt
-from RaMResearch.Utils.General import BWtoRGB
+from RaMResearch.Utils.General import BWtoRGB, num_clip, print_min_max
 
 
 # Store a single contour with a center point
@@ -99,7 +99,9 @@ class ContourConnection:
 
     # Connection properties
     distance: float = 0
+    target_distance: float = 0
     angle: float = 0
+    target_angle: float = 0
 
     # Weights
     distance_weight: float = None   # Distance weight
@@ -114,23 +116,35 @@ class ContourConnection:
 
     def __init__(self, contour_1: Contour, contour_2: Contour, image_size):
         self.clear_variables()
-        self.contour_1 = contour_1
-        self.contour_2 = contour_2
+        default = contour_1.get_center().get_xpos() < contour_2.get_center().get_xpos()
+        self.contour_1 = contour_1 if default else contour_2
+        self.contour_2 = contour_2 if default else contour_1
         self.image_size = image_size
+        self.target_distance = 55.0
+        self.calc_angle()
+        self.calc_target_angle()
+        self.calc_distance()
         self.calc_global_weight()
 
     def clear_variables(self):
         self.distance, self.angle = 0, 0
         self.distance_weight, self.angle_weight, self.size_weight = 0, 0, 0
         self.global_weight = 0
+        self.target_angle = 0
         self.image_size = (0, 0)
         self.is_ring_cntr = False
 
     def get_distance(self):
         return self.distance
 
+    def get_target_distance(self):
+        return self.target_distance
+
     def get_angle(self):
         return self.angle
+
+    def get_target_angle(self):
+        return self.target_angle
 
     def get_weight(self):
         return self.global_weight
@@ -145,37 +159,32 @@ class ContourConnection:
         y_dist = self.contour_1.get_center().get_ypos() - self.contour_2.get_center().get_ypos()
         x_dist = x_dist if x_dist != 0 else 0.00000001    # To avoid dividing by 0
         angle = np.arctan(y_dist / x_dist) * 180/np.pi
-        return angle
+        self.angle = angle
 
     def calc_weights(self):
 
         # Define helper functions
         def diff(size): return np.clip(abs((size - 40) * 0.01), 0, 1)
 
-        # Calc connection properties
-        self.calc_distance()
-        self.calc_angle()
-
         # Define weight variables
-        angle_weight = 15  # The amount of degrees that the angle is allowed to differ
+        angle_weight: int = 15  # The amount of degrees that the angle is allowed to differ
         distance_weight = 10  # The amount of pixels that the distance is allowed to diifer
-        target_angle = self.get_target_angle()
 
         # Calc and store parameters
-        self.distance_weight = np.clip(np.abs(55-self.distance)/distance_weight, 0, 1)
-        self.angle_weight = np.clip(np.abs(target_angle-self.angle)/angle_weight, 0, 1)
-        self.size_weight = np.clip(diff(self.contour_1.get_height())+diff(self.contour_2.get_height()), 0, 1)
+        self.distance_weight = num_clip(np.abs(55-self.distance)/distance_weight, 0, 1)
+        self.angle_weight = num_clip(np.divide(np.abs(self.target_angle-self.angle), angle_weight), 0, 1)
+        self.size_weight = num_clip(diff(self.contour_1.get_height())+diff(self.contour_2.get_height()), 0, 1)
 
-        debug = 1
-
-    def get_target_angle(self):
+    def calc_target_angle(self):
         x_dist = self.contour_1.get_center().get_xpos() if self.contour_1.get_center().get_xpos() > 0 else 0.00000001
         y_dist = int(self.image_size[1] / 2) - self.contour_1.get_center().get_ypos()
-        return -np.arctan(y_dist / x_dist) * 180 / np.pi
+        half = "upper" if self.contour_1.get_center().get_xpos() <= self.image_size[0] / 2 else "lower"
+        t_angle = np.arctan(y_dist / x_dist) * 180 / np.pi
+        self.target_angle = -t_angle if half == "upper" else t_angle
 
     def calc_global_weight(self):
         self.calc_weights()
-        self.global_weight = np.clip(1 - self.distance_weight - self.angle_weight - self.size_weight, 0, 1)
+        self.global_weight = num_clip(1 - self.distance_weight - self.angle_weight - self.size_weight, 0, 1)
 
     def get_all_contours(self):
         return [self.contour_1, self.contour_2]
@@ -193,6 +202,13 @@ class ContourConnection:
         pos2 = self.contour_2.get_center().get_coordinates_int()
         avg = np.add(pos1, pos2) / 2
         return [int(var) for var in avg]
+
+    def debug(self):
+        print("Connection Weight:" + "\t\t" + str(self.get_weight()))
+        print("Contour Length Actual:" + "\t\t" + str(self.get_distance()))
+        print("Contour Length Target:" + "\t\t" + str(self.get_target_distance()))
+        print("Contour Angle Actual:" + "\t\t" + str(self.get_angle()))
+        print("Contour Angle Target:" + "\t\t" + str(self.get_target_angle()))
 
 
 # Store all slice contours of the dicom object
@@ -291,6 +307,9 @@ class SliceContourAnalysis:
     def set_is_main_ring_contour(self, is_main_ring_slc):
         self.is_main_ring_slc = is_main_ring_slc
 
+    def debug(self):
+        self.ring_contour.debug()
+
 
 # Store complete analysis in contour analysis object
 class ContourAnalysis:
@@ -301,6 +320,9 @@ class ContourAnalysis:
     # Most likely ring contour sotred as front contour, rear contour
     ring_contour: ContourConnection = None
     ring_contour_certainty: float = 0
+
+    # Temporary values
+    slice_weight: [float] = np.empty(360)
 
     def __init__(self, image, debug=False):
 
@@ -337,19 +359,36 @@ class ContourAnalysis:
 
     def calc_ring_contour(self, debug=False):
 
+        # Create weights for each slice
+        num_slices = len(self.contour_results)
+        self.slice_weight = get_gauss_dist_norm(num_slices, plot=False)
+
+        # Store
+        evaluation_array = np.empty(num_slices)
+
         # Store all contours from all layers
-        evaluation_array = [(s_cntr.get_ring_contour(), s_cntr.slice_depth) for s_cntr in self.contour_results]
-
-        # Weight Depth
-        gauss_dist = get_gauss_dist_norm(len(evaluation_array), plot=debug)
-        weighted_depth_array = [c_conn.get_weight() * gauss_dist[depth] for c_conn, depth in evaluation_array
-                                if c_conn is not None]
-
-        max_pos = int(np.argmax(weighted_depth_array))
+        for i in range(num_slices):
+            evaluation_array[i] = self.contour_results[i].get_ring_contour().get_weight() * self.slice_weight[i]
+        
+        print("Whole array:\n")
+        for i in range(num_slices):
+            print(str(i) + ":\t" + str(evaluation_array[i]))
+        
+        print_min_max(self.slice_weight, name="Weighted Array")
+        
+        max_pos = int(np.argmax(self.slice_weight))
 
         # Store most likely ring contour and its certainty
         self.ring_contour = evaluation_array[max_pos][0]
         self.contour_results[max_pos].set_is_main_ring_contour(True)
+
+        if debug:
+            for layer_depth in range(num_slices):
+                ctr_conn = self.contour_results[layer_depth].get_ring_contour()
+                print("=====================================================")
+                print("Layer depth:\t\t" + str(layer_depth))
+                print("Slice Depth Weight:" + "\t\t" + str(self.slice_weight[layer_depth]))
+                ctr_conn.debug()
 
     def calc_connected_ring_contours(self):
         pass
@@ -357,9 +396,15 @@ class ContourAnalysis:
     # Returns an image with the contour connections
     # If the with_contours flag is set, the contours will be drawn as well
     def get_image(self, with_connections=False, with_contours=False, with_angle=False,
-                  with_area=False, with_color=False, with_height=False, with_midpoint=False, threshold=0):
+                  with_area=False, with_color=False, with_height=False, with_midpoint=False, with_length=False,
+                  with_weight=False, threshold=0, debug=False):
 
         def draw_contour_connection(conn, image, is_main_slice=False):
+
+            def put_text(str_text, offset_number):
+                point = tuple(np.add(mid_point, np.multiply(offset_val, offset_number)))
+                cv2.putText(image[depth, :], str(str_text), point, font, 0.4, color=color)
+
             contour_general_col, contour_ring_col = (0, 0, 255), (0, 255, 0)
             # Switch color based on if a contour is a ring connection
             if with_color:
@@ -370,6 +415,14 @@ class ContourAnalysis:
 
             cntr1, cntr2 = conn.get_all_contours()
             depth = cntr1.get_center().get_zpos()
+
+            # Global Settings
+            c1_coords = cntr1.center.get_coordinates_int()
+            c2_coords = cntr2.center.get_coordinates_int()
+            mid_point = [int((c1_coords[1] + c2_coords[1]) / 2), int((c1_coords[2] + c2_coords[2]) / 2)]
+            offset_val = [0, 15]
+            offset_num = 0
+            font = cv2.FONT_HERSHEY_SIMPLEX
 
             if with_connections:
                 # Draw Connections
@@ -382,20 +435,35 @@ class ContourAnalysis:
                 cv2.drawContours(image[depth, :], [cntr2.contour], -1, color, 2, cv2.LINE_AA)
 
             if with_angle:
-                # Add angle description
-                angle = str(c_conn.get_angle())
-                c1_coords = cntr1.center.get_coordinates_int()
-                c2_coords = cntr2.center.get_coordinates_int()
-                mid_point = (int((c1_coords[1] + c2_coords[1]) / 2), int((c1_coords[2] + c2_coords[2]) / 2))
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                cv2.putText(image[depth, :], angle, mid_point, font, 0.4, color=color)
+                # Text Content
+                angle_text = [str(c_conn.get_angle()), str(conn.get_target_angle())]
+
+                # Write Text
+                for i in range(len(angle_text)):
+                    put_text(angle_text[i], offset_num)
+                    offset_num += 1
 
             if with_area or with_height:
                 for contour in [cntr1, cntr2]:
                     text = str(contour.get_area()) if with_area else str(contour.get_height())
                     center_point = (contour.get_center().get_xpos() + 10, contour.get_center().get_ypos())
-                    font = cv2.FONT_HERSHEY_SIMPLEX
                     cv2.putText(image[depth, :], text, center_point, font, 0.4, color=color)
+
+            if with_length:
+                # Get length
+                length_val = conn.get_distance()
+
+                # Write text to screen
+                put_text("Length: " + str(length_val), offset_num)
+                offset_num += 1
+
+            if with_weight:
+                # Get weight value
+                weight_val = conn.get_weight()
+
+                # Write text to screen
+                put_text("Weight: " + str(weight_val), offset_num)
+                offset_num += 1
 
         image_size = self.image_3d.shape
 
@@ -414,12 +482,19 @@ class ContourAnalysis:
                 draw_contour_connection(c_conn, return_image)
 
         # Draw ring contour
-        draw_contour_connection(self.ring_contour, return_image, is_main_slice=True)
+        r_c = self.ring_contour
+        draw_contour_connection(r_c, return_image, is_main_slice=True)
 
         # Draw Midpoint
         if with_midpoint:
             mid = self.ring_contour.get_midpoint()
             cv2.circle(return_image[mid[0], :], tuple(mid[1:]), 5, 255, thickness=-1)
+
+        # Print out to console if debug flag is set
+        if debug:
+            print("Ring Connection Distance:\t" + str(r_c.get_distance()))
+            print("Ring Connection Angle:\t" + str(r_c.get_angle()))
+            print("Ring Connection Weight:\t" + str(r_c.get_weight()))
 
         # Return final image
         return return_image

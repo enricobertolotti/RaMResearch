@@ -43,7 +43,6 @@ class RingPointCloud:
 
             pt_circle = []
             for phi in range(360):
-                thetaoffset = np.sin(theta * np.pi/180)
                 if theta > 180:
                     phi = - phi
                 sph_vec = [self.radius_small, theta, phi]
@@ -78,18 +77,7 @@ def create_ring_image(ringcloud: RingPointCloud, bg_image=None):
     for theta in range(len(ringcloud.point_cloud)):
         for pt in ringcloud.point_cloud[theta]:
             pos = np.add(pt.abs_pos, cp).astype(np.uint8)
-            if np.max(pos) == 255:
-                debug = 1
             bg_image[pos[0]][pos[1]][pos[2]] = 255
-
-    # print("Cartesian Corrdinates of reference Circle")
-    # print(cart_pc)
-
-    # for pos in cart_pc:
-    #     abs_pos = np.add(cp, pos).astype(np.uint)
-    #     bg_image[abs_pos[0]][abs_pos[1]][abs_pos[2]] = 255
-    # for pos in cart_pc:
-    #     cv2.circle(bg_image, cp + pos, 1, (255, 255, 255))
 
     return bg_image.astype(np.uint8)
 
@@ -103,6 +91,3 @@ debug = 1
 viewarray = []
 
 intrfce.imageview3d([test.copy().transpose((1, 0, 2)), test.copy(), test.copy().transpose((2, 1, 0))])
-
-
-

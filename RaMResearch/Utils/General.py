@@ -21,6 +21,15 @@ def BWtoRGB(array, pureRed: bool = False):
             return np.stack((array, array, array), axis=len(array.shape))
 
 
+#################################################### Number Functions
+def num_clip(x, x_min, x_max):
+    if x < x_min:
+        return x_min
+    elif x > x_max:
+        return x_max
+    else:
+        return x
+
 #################################################### Length Conversion Functions
 
 def pix_to_mm(pixel_val, return_int=False):
