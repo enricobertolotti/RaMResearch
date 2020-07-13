@@ -26,14 +26,16 @@ def get_dicom_by_angle():
         print("No image found with the angles: \nAlpha:\t" + str(angles[0]) + "\nBeta:\t" + str(angles[1]))
 
 
-def run_analysis(position=True, rotation=False, debug=False, startimage=0):
+# Main analysis code
+def run_analysis(position=True, rotation=False, debug=False, startimage=1):
     def load_dicoms():
         return ld.get_dicom_filepairs(folder_clean_DICOM)
 
     def position_debug_view():
         test_contours = dicom_array[-1].dicomanalysis.get_analysis_results("contour_analysis").get_image(
             with_connections=True, with_contours=True, with_angle=True, with_area=False, with_color=True,
-            with_height=False, with_midpoint=True, with_length=True, with_weight=True, threshold=0.1, debug=True)
+            with_height=False, with_midpoint=True, with_length=True, with_weight=True, with_contour_num=True,
+            threshold=0.1, debug=True)
         normal_image = dicom_array[-1].get_image(True).get_image(filtered=False)
         intrfce.imageview3d([test_contours, normal_image], windowName="Test Ring Contour")
 
@@ -66,4 +68,4 @@ def run_analysis(position=True, rotation=False, debug=False, startimage=0):
 
 
 # Execute functions
-run_analysis(position=True, rotation=False, debug=True, startimage=2)
+run_analysis(position=True, rotation=False, debug=True)
