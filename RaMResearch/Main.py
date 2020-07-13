@@ -51,7 +51,9 @@ def run_analysis(position=True, rotation=False, debug=False, startimage=1):
         # Filter DICOM
 
         if len(dicom_array) >= startimage:
-            leg_fil.gauslogfilter(dicom_array[-1])
+            # imageobject, ring_present=True, verticalsigma=7, logsigma=4, gaus1D=True,
+            #                   morphological=True, morphkernelsize=3):
+            leg_fil.gauslogfilter(dicom_array[-1], verticalsigma=7, logsigma=4, debug=debug)
 
             # Position analysis
             if position or rotation:
@@ -62,10 +64,10 @@ def run_analysis(position=True, rotation=False, debug=False, startimage=1):
             # Rotation analysis
             if rotation:
                 dicom_array[-1].run_analysis(analysis_type="rotation_analysis", debug=debug)
-
+                dicom_array[-1].get_analysis(analysis_type="rotation_analysis").create_plot(name="rotation")
         else:
             print("Skipped Image " + str(len(dicom_array)))
 
 
 # Execute functions
-run_analysis(position=True, rotation=False, debug=True)
+run_analysis(position=True, rotation=True, debug=True)

@@ -4,6 +4,7 @@ import numpy as np
 import RaMResearch.Utils.General as g
 import RaMResearch.Utils.Interfaces as intrfce
 from RaMResearch.Analysis.Utils import ArrayOperations as arrayops
+import matplotlib.pyplot as plt
 import time
 
 
@@ -20,15 +21,20 @@ class RotationAnalysis:
     # Analysis results stored as [front_rot][side_rot] = convolution result
     angle_results: [[int]] = np.empty((360, 360))
 
+    # Export arrays
+    angle_plot: plt = None
+
     def __init__(self, image, ring_dim, ring_coord, debug=False):
         self.reset_parameters()
         self.create_ring(ring_dim)
         self.analysis_image = image
         self.set_ring_crosscut(ring_coord)
-        self.run_analysis(debug=debug)
+        self.run_analysis(analysis_range=10, step=5, debug=debug)
 
     def reset_parameters(self):
         self.angle_results = np.empty((360, 360))
+        if self.angle_plot is not None:
+            self.angle_plot.clear()
 
     def set_ring_crosscut(self, ring_coord):
         if isinstance(ring_coord, (tuple, np.ndarray, list)):
@@ -53,7 +59,28 @@ class RotationAnalysis:
         r_small, r_large = self.ring_cloud.radius_small, self.ring_cloud.radius_large
         return rv2.import_ring_array(r_small, r_large, angle, filled=True)
 
-    def run_analysis(self, debug=False):
+    # Return pyplot object of the angle analysis
+    def get_plot(self):
+        return self.angle_plot
+
+    def create_plot(self, name, save_path=None):
+        yvals = []
+        xvals = []
+        for angle in range(len(self.angle_results[0])):
+            if self.angle_results[0][angle] > 0.01:
+                yvals.append(self.angle_results[0][angle])
+                xvals.append(angle)
+
+        self.angle_plot = plt
+        self.angle_plot.plot(xvals, yvals)
+        self.angle_plot.title(name)
+        self.angle_plot.grid()
+        self.angle_plot.show()
+        
+        if save_path:
+            self.angle_plot.savefig(filename=)
+
+    def run_analysis(self, analysis_range=(0, 180), step=1, debug=False):
 
         # Crop image to a standard 256 x 256 x 256 array and invert it
         crs_corr_image = self.analysis_image
@@ -62,12 +89,23 @@ class RotationAnalysis:
         crs_corr_image = g.crop_all_axis_to_length(g.pad_to_minimum(crs_corr_image, 256), 256)
         crs_corr_image = g.invert_array(crs_corr_image.astype(np.int8), int_bitdepth=16)
 
+        # Create a boolean image
+        crs_corr_image = g.threshhold(crs_corr_image, np.max(crs_corr_image)/2, astype=np.bool_)
+
         g.print_min_max(crs_corr_image, name="Cross Correlation Image")
 
-        list_sums = []
+        range_start, range_stop = 0, analysis_range if isinstance(analysis_range, int) else analysis_range
+
+        # Create range of analysis angles
+        angles = []
+        init_angle = range_start
+        while init_angle <= range_stop:
+            angles.append(init_angle)
+            init_angle += step
 
         # Loop through every angle of image
-        for i in range(0, 180):
+        for i in angles:
+
             # Get the ring image, crop and invert
             time1 = time.time()
             ring_image_obj = self.get_rotated_image(i)
@@ -75,7 +113,7 @@ class RotationAnalysis:
             # intrfce.imageview3d(ring_image_obj.get_image(), windowName="Test View Ring Image")
 
             crop_dim = (64, 64, 64)
-            cropped_ring_im = ring_image_obj.get_cropped_image(crop_dim)
+            cropped_ring_im = ring_image_obj.get_cropped_image(crop_dim).astype(np.bool_)
 
             g.print_min_max(cropped_ring_im, name="Cross Correlation Ring Image")
             print("Time to get image = \t" + str(time.time() - time1))
@@ -89,10 +127,10 @@ class RotationAnalysis:
                                                   self.ring_cross_coord.get_coordinates_int())
             print("Finished Correlating")
             print("Time to correlate = \t" + str(time.time() - time1))
-            crs_corr_sum = np.sum(crs_corr)
-            list_sums.append(crs_corr_sum)
+            crs_corr_sum = np.divide(np.sum(crs_corr), crop_dim[0]*crop_dim[1]*crop_dim[2])
+            self.angle_results[0][i] = crs_corr_sum
             print("Cross Correlation Sum (Angle " + str(i) + "):\t" + str(crs_corr_sum))
 
-        if debug:
-            intrfce.plot1D(list_sums)
-        print("List Sums:\t" + str(list_sums))
+        # if debug:
+        #     intrfce.plot1D(list_sums, plot_title=)
+        # print("List Sums:\t" + str(list_sums))

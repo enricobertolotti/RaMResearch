@@ -2,13 +2,14 @@ import time
 import numpy as np
 from scipy import ndimage
 import cv2
+from RaMResearch.Utils import Interfaces as intrfc
 
 from RaMResearch.Data import DataStructs as ds
 
 
 # In place image filter
 def gauslogfilter(imageobject, ring_present=True, verticalsigma=7, logsigma=4, gaus1D=True,
-                  morphological=True, morphkernelsize=3):
+                  morphological=True, morphkernelsize=3, debug=False):
 
     # Get the image depending on the object type
     if isinstance(imageobject, ds.DicomObject):

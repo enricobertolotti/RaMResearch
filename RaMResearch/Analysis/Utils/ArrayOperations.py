@@ -8,9 +8,11 @@ def multiply_w_offset(a, b, b_center):
         a_dim[i] = [b_center[i]-a_dim[i][0], b_center[i]+a_dim[i][1]]
     cropped_a = a[a_dim[0][0]:a_dim[0][1], a_dim[1][0]:a_dim[1][1], a_dim[2][0]:a_dim[2][1]]
 
-    # multiplied = np.multiply(cropped_a.astype(np.int16, casting="safe"), b.astype(np.int16, casting="safe"))
-    multiplied = np.multiply(cropped_a, b)
-    # normalized = np.divide(multiplied, 255).astype(np.int8)
+    if cropped_a.dtype == np.bool_ and b.dtype == np.bool_:
+        multiplied = np.logical_xor(cropped_a, b)
+    else:
+        multiplied = np.multiply(cropped_a, b)
     print("Multiplied Min:\t" + str(np.min(multiplied)) + "\t Max:" + str(np.max(multiplied)))
+
     return multiplied
 

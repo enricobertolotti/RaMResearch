@@ -132,3 +132,6 @@ def store_dicom_analysis_data(dicom_image: ds.DicomObject, folder="", filename="
     dataframe = load_csv_into_df(full_path)
     dataframe = add_data(dataframe, dicom_image)
     dataframe.to_csv(full_path)
+
+    def get_plot_savepath(filename, analysis_round):
+

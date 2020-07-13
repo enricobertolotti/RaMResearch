@@ -56,6 +56,12 @@ def clip_scale(array, max_value=255):
     return (np.divide(r_array, np.max(r_array)) * max_value).astype(np.uint8)
 
 
+# Returns a thresholded image of the type specified
+def threshhold(array, threshold, astype=np.int):
+    if astype == np.bool_:
+        return array > threshold
+
+
 #################################################### Complex Array Functions
 
 # Returns an array with each dimension padded to at least the specified amount
