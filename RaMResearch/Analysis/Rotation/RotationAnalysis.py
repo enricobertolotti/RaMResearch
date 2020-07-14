@@ -2,7 +2,6 @@ from RaMResearch.Data import BasicDataStructs as bds
 import RaMResearch.Data.RingV2 as rv2
 import numpy as np
 import RaMResearch.Utils.General as g
-import RaMResearch.Utils.Interfaces as intrfce
 from RaMResearch.Analysis.Utils import ArrayOperations as arrayops
 import matplotlib.pyplot as plt
 import time
@@ -63,7 +62,16 @@ class RotationAnalysis:
     def get_plot(self):
         return self.angle_plot
 
-    def create_plot(self, name, save_path=None):
+    # Returns the reference analysis image
+    def get_analysis_image(self):
+        return self.analysis_image
+
+    def create_plot(self, save_path: str = None):
+
+        # Title Code
+        round_str = save_path.split(sep="/")[-1].split(sep="_")[-1][5:]
+        name = save_path.split(sep="/")[-1].split(sep="_")[0] + ": Rotation Analysis Round " + round_str
+
         yvals = []
         xvals = []
         for angle in range(len(self.angle_results[0])):
@@ -71,15 +79,25 @@ class RotationAnalysis:
                 yvals.append(self.angle_results[0][angle])
                 xvals.append(angle)
 
-        self.angle_plot = plt
-        self.angle_plot.plot(xvals, yvals)
-        self.angle_plot.title(name)
-        self.angle_plot.grid()
-        self.angle_plot.show()
-        
-        if save_path:
-            self.angle_plot.savefig(filename=)
+        plt.plot(xvals, yvals)
+        plt.title(name)
+        plt.axis()
+        plt.ylabel("Dice Coefficient")
+        plt.xlabel("Ring Angle [Degrees]")
+        plt.grid()
 
+        # Save if flag is set
+        if save_path:
+            plt.savefig(fname=save_path + ".jpg", format="jpg", dpi=300)
+
+        # Display and create new figure
+        plt.show()
+
+    # Returns a tuple with (alpha-rot, beta-rot)
+    def get_max_angle(self):
+        return np.unravel_index(np.argmax(self.angle_results, axis=None), self.angle_results.shape)
+
+    # Main analysis code
     def run_analysis(self, analysis_range=(0, 180), step=1, debug=False):
 
         # Crop image to a standard 256 x 256 x 256 array and invert it
@@ -130,7 +148,3 @@ class RotationAnalysis:
             crs_corr_sum = np.divide(np.sum(crs_corr), crop_dim[0]*crop_dim[1]*crop_dim[2])
             self.angle_results[0][i] = crs_corr_sum
             print("Cross Correlation Sum (Angle " + str(i) + "):\t" + str(crs_corr_sum))
-
-        # if debug:
-        #     intrfce.plot1D(list_sums, plot_title=)
-        # print("List Sums:\t" + str(list_sums))

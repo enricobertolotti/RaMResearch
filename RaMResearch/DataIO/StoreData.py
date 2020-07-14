@@ -2,12 +2,14 @@ import numpy as np
 from pathlib import Path as path
 import RaMResearch.Data.RingV2 as rv2
 from RaMResearch.Data import DataStructs as ds
-
+import os
 import pandas as pd
+from pathlib import Path as path
 
 
 root_path = "/RaMData/"
 default_folder = "/Users/enricobertolotti/PycharmProjects/BScAssignment/RaMData/Numpy_Ring_Definitions"
+default_folder_global = "/Users/enricobertolotti/PycharmProjects/BScAssignment/RaMData/"
 
 
 def store_ring(ring_obj: rv2.RingPointCloud, folder=default_folder, angle=None):
@@ -133,5 +135,14 @@ def store_dicom_analysis_data(dicom_image: ds.DicomObject, folder="", filename="
     dataframe = add_data(dataframe, dicom_image)
     dataframe.to_csv(full_path)
 
-    def get_plot_savepath(filename, analysis_round):
+
+# Get path to store rotation analysis_file
+def get_plot_savepath(file_name):
+    global_folder = default_folder_global + "Analysis_Results/"
+    current_round = len(next(os.walk(global_folder))[1]) + 1
+    abs_path = global_folder + "Round" + str(current_round) + "/RotationAnalysis/"
+    path(abs_path).mkdir(parents=True, exist_ok=True)
+    return abs_path + str(file_name) + "_rot_anal_round" + str(current_round)
+
+
 

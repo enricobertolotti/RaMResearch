@@ -126,6 +126,9 @@ class DicomObject:
 
     def get_name(self):
         return self.name
+    
+    def get_dicom_number(self):
+        return self.name.split("_")[0]
 
     def get_patient(self):
         return self.patient

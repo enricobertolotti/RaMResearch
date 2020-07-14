@@ -1,5 +1,5 @@
 from RaMResearch.Utils import Interfaces as intrfce, Scripts as scr
-from RaMResearch.DataIO import LoadData as ld
+from RaMResearch.DataIO import LoadData as ld, StoreData as sd
 from RaMResearch.Filters import LegacyFilters as leg_fil
 
 # from RaMResearch import Filters as fil
@@ -64,7 +64,8 @@ def run_analysis(position=True, rotation=False, debug=False, startimage=1):
             # Rotation analysis
             if rotation:
                 dicom_array[-1].run_analysis(analysis_type="rotation_analysis", debug=debug)
-                dicom_array[-1].get_analysis(analysis_type="rotation_analysis").create_plot(name="rotation")
+                dicom_array[-1].get_analysis(analysis_type="rotation_analysis").\
+                    create_plot(save_path=sd.get_plot_savepath(dicom_array[-1].get_dicom_number()))
         else:
             print("Skipped Image " + str(len(dicom_array)))
 
