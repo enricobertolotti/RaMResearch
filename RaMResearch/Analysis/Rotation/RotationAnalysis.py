@@ -6,6 +6,8 @@ from RaMResearch.Analysis.Utils import ArrayOperations as arrayops
 import matplotlib.pyplot as plt
 import time
 
+import RaMResearch.Utils.Interfaces as intrfc
+
 
 # Class to store all entities that are associated with a rotation analysis
 class RotationAnalysis:
@@ -18,7 +20,7 @@ class RotationAnalysis:
     ring_cross_coord: bds.Coordinate = None
 
     # Analysis results stored as [front_rot][side_rot] = convolution result
-    angle_results: [[int]] = np.empty((360, 360))
+    angle_results: [[int]] = np.zeros((360, 360))
 
     # Export arrays
     angle_plot: plt = None
@@ -29,9 +31,10 @@ class RotationAnalysis:
         self.analysis_image = image
         self.set_ring_crosscut(ring_coord)
         self.run_analysis(analysis_range=10, step=5, debug=debug)
+        self.get_export_image()
 
     def reset_parameters(self):
-        self.angle_results = np.empty((360, 360))
+        self.angle_results = np.zeros((360, 360))
         if self.angle_plot is not None:
             self.angle_plot.clear()
 
@@ -66,7 +69,11 @@ class RotationAnalysis:
     def get_analysis_image(self):
         return self.analysis_image
 
-    def create_plot(self, save_path: str = None):
+    # Returns ring cloud object
+    def get_ring_cloud(self):
+        return self.ring_cloud
+
+    def create_plot(self, save_path: str = None, debug=False):
 
         # Title Code
         round_str = save_path.split(sep="/")[-1].split(sep="_")[-1][5:]
@@ -91,7 +98,10 @@ class RotationAnalysis:
             plt.savefig(fname=save_path + ".jpg", format="jpg", dpi=300)
 
         # Display and create new figure
-        plt.show()
+        if debug:
+            plt.show()
+        else:
+            plt.clf()
 
     # Returns a tuple with (alpha-rot, beta-rot)
     def get_max_angle(self):
@@ -148,3 +158,23 @@ class RotationAnalysis:
             crs_corr_sum = np.divide(np.sum(crs_corr), crop_dim[0]*crop_dim[1]*crop_dim[2])
             self.angle_results[0][i] = crs_corr_sum
             print("Cross Correlation Sum (Angle " + str(i) + "):\t" + str(crs_corr_sum))
+
+    def get_export_image(self):
+
+        # Crop ring image to size
+        max_crop = []
+        ring_pos = self.ring_cross_coord
+        for i in range(3):
+            max_crop.append(np.minimum(ring_pos.get_coordinates_int()[i],
+                            self.analysis_image.shape[i] - ring_pos.get_coordinates_int()[i]))
+
+        # Get images needed for export
+        base_image = np.zeros(self.analysis_image.shape)
+        ring_image = self.ring_cloud.get_image(outline=False, angle=self.get_max_angle()[0], crop_dim=max_crop).get_image()
+        ri_s = ring_image.shape
+
+        # Define Starting Corner
+        s_c = np.subtract(ring_pos.get_coordinates_int(), np.divide(max_crop, 2).astype(np.int))
+        base_image[s_c[0]:s_c[0]+ri_s[0], s_c[1]:s_c[1]+ri_s[1], s_c[2]:s_c[2]+ri_s[2]] += ring_image
+
+        return base_image
