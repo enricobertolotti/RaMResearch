@@ -1,6 +1,8 @@
 import numpy as np
-import cv2
 import copy
+from typing import Union
+
+
 ############################ Static parameters
 conversion_factor = 4.6  # in pixels per mm
 
@@ -92,6 +94,11 @@ def crop_all_axis_to_length(array, length: int):
     return array[d[0][0]:d[0][1], d[1][0]:d[1][1], d[2][0]:d[2][1]]
 
 
+# Returns the minimum distance from the point to the edge of the array
+def get_max_crop(array_dim, pos: Union[tuple, list, np.ndarray]):
+    return [np.minimum(pos[i], array_dim[i] - pos[i]) for i in range(len(array_dim))]
+
+
 #################################################### Debugging Functions
 def draw_point(array, position, size=10, color=0):
 
@@ -111,7 +118,6 @@ def draw_point(array, position, size=10, color=0):
     return array_copy
 
 
-#################################################### Debugging Functions
 def print_min_max(array, name=""):
     if name == "":
         print("Max:\t" + str(np.max(array)) + "\n")

@@ -42,7 +42,13 @@ def imageview3d(arrays, windowName="TestWindow"):
             depth = value
             cv2.imshow(localwindowName, castarray(array[depth, :]))
 
-        array = array.astype(np.uint8)
+        def convert_image_type(image):
+            if image.dtype == np.bool_:
+                return image.astype(np.uint8) * 255
+            else:
+                return image.astype(np.uint8)
+
+        array = convert_image_type(array)
         cv2.namedWindow(localwindowName)
         cv2.createTrackbar('Depth', localwindowName, 0, array.shape[0] - 1, trackbarHandler)
         cv2.imshow(localwindowName, castarray(array[0, :]))

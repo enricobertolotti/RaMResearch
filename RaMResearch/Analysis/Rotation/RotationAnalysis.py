@@ -58,13 +58,6 @@ class RotationAnalysis:
     def get_result(self):
         return np.unravel_index(np.argmax(self.angle_results), self.angle_results.shape)
 
-    def get_rotated_image(self, angle):
-        r_small, r_large = self.ring_cloud.radius_small, self.ring_cloud.radius_large
-        ringobj = rv2.import_ring_array(r_small, r_large, angle, filled=True)
-        if ringobj is None:
-            rv2.generate_all_rotations(r_small=r_small, r_large=r_large, anglerange=(0, 180))
-        return rv2.import_ring_array(r_small, r_large, angle, filled=True)
-
     # Return pyplot object of the angle analysis
     def get_plot(self):
         return self.angle_plot
@@ -114,12 +107,18 @@ class RotationAnalysis:
     # Main analysis code
     def run_analysis(self, analysis_range=(0, 180), step=1, debug=False):
 
+        corr_run_time = []
+        image_load_time = []
+
         # Crop image to a standard 256 x 256 x 256 array and invert it
         crs_corr_image = self.analysis_image
 
-        crs_corr_image = g.draw_point(crs_corr_image, self.ring_cross_coord.get_coordinates_int(), color=255)
-        crs_corr_image = g.crop_all_axis_to_length(g.pad_to_minimum(crs_corr_image, 256), 256)
-        crs_corr_image = g.invert_array(crs_corr_image.astype(np.int8), int_bitdepth=16)
+        # Show the point of the ring crosscut if debug
+        if debug:
+            crs_corr_image = g.draw_point(crs_corr_image, self.ring_cross_coord.get_coordinates_int(), color=255)
+
+        crs_corr_image = g.crop_all_axis_to_length(g.pad_to_minimum(crs_corr_image, 256), 256)  # Pad and Crop
+        crs_corr_image = g.invert_array(crs_corr_image.astype(np.int8), int_bitdepth=16)        # Invert
 
         # Create a boolean image
         crs_corr_image = g.threshhold(crs_corr_image, np.max(crs_corr_image)/2, astype=np.bool_)
@@ -139,48 +138,50 @@ class RotationAnalysis:
         for i in angles:
 
             # Get the ring image, crop and invert
-            time1 = time.time()
-            ring_image_obj = self.get_rotated_image(i)
+            start_time = time.time()
 
-            # intrfce.imageview3d(ring_image_obj.get_image(), windowName="Test View Ring Image")
+            # Calculate max crop dim:
+            crop_max_dim = g.get_max_crop(array_dim=crs_corr_image.shape,
+                                          pos=self.ring_cross_coord.get_coordinates_int())
 
-            crop_dim = (64, 64, 64)
-            cropped_ring_im = ring_image_obj.get_cropped_image(crop_dim).astype(np.bool_)
+            cropped_ring_im = self.ring_cloud.get_image(outline=False, crop_dim=crop_max_dim, angle=i)\
+                .get_image().astype(np.bool_)
 
             g.print_min_max(cropped_ring_im, name="Cross Correlation Ring Image")
-            print("Time to get image = \t" + str(time.time() - time1))
-            
-            # intrfce.imageview3d(cropped_ring_im, windowName="Test View Ring Image Cropped")
 
-            # Pattern match images
-            time1 = time.time()
+            image_load_time.append(time.time()-start_time)
+            start_time = time.time()
 
-            print("Correlating...")
             crs_corr = arrayops.multiply_w_offset(crs_corr_image, cropped_ring_im,
                                                   self.ring_cross_coord.get_coordinates_int())
-            print("Finished Correlating")
-            print("Time to correlate = \t" + str(time.time() - time1))
-            crs_corr_sum = np.divide(np.sum(crs_corr), crop_dim[0]*crop_dim[1]*crop_dim[2])
+
+            crs_corr_sum = np.divide(np.sum(crs_corr), crop_max_dim[0]*crop_max_dim[1]*crop_max_dim[2])
             self.angle_results[0][i] = crs_corr_sum
             print("Cross Correlation Sum (Angle " + str(i) + "):\t" + str(crs_corr_sum))
 
+            corr_run_time.append(time.time() - start_time)
+
+        # Print average correlation time
+        print("Average time to load images:\t" + str(np.average(image_load_time)))
+        print("Average time to compute dice:\t" + str(np.average(corr_run_time)))
+
     def get_export_image(self, debug=False):
 
-        # Crop ring image to size
-        max_crop = []
-        ring_pos = self.ring_cross_coord
-        for i in range(3):
-            max_crop.append(np.minimum(ring_pos.get_coordinates_int()[i],
-                            self.analysis_image.shape[i] - ring_pos.get_coordinates_int()[i]))
+        # Create new header for terminal output
+        g.print_divider("Slice Export for Machine Learning")
 
-        # Get images needed for export
+        # Get dimensions and positions
+        ring_pos = self.ring_cross_coord.get_coordinates_int()
+        max_crop = g.get_max_crop(self.analysis_image.shape, ring_pos)
+
+        # Get the background image & the ring image with the right angle
         base_image = np.zeros(self.analysis_image.shape)
         ring_image = self.ring_cloud.get_image(outline=False, angle=self.get_max_angle()[0], crop_dim=max_crop)\
             .get_image()
-        ri_s = ring_image.shape
 
         # Define Starting Corner
-        s_c = np.subtract(ring_pos.get_coordinates_int(), np.divide(max_crop, 2).astype(np.int))
+        ri_s = ring_image.shape
+        s_c = np.subtract(ring_pos, np.divide(max_crop, 2).astype(np.int))
         base_image[s_c[0]:s_c[0]+ri_s[0], s_c[1]:s_c[1]+ri_s[1], s_c[2]:s_c[2]+ri_s[2]] += ring_image
         base_image = base_image.astype(np.uint8)
 

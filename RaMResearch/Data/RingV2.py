@@ -111,9 +111,9 @@ class RingPointCloud:
     point_cloud_outline = []
     point_cloud_filled = []
 
-    # Images stored as (image, rotation)
-    image_outline: [RingImage] = None
-    image_filled: [RingImage] = None
+    # Images stored as RingImage
+    image_outline: RingImage = None
+    image_filled: RingImage = None
 
     def __init__(self, lg_radius, sm_radius):
         self.radius_large = np.max([lg_radius, sm_radius])
@@ -134,39 +134,26 @@ class RingPointCloud:
     def get_image(self, outline=True, morph_operations=True, crop_dim=(-1, -1, -1), angle=0):
 
         # See if images can be loaded
+        angle %= 180        # Images 180 degrees apart are equal to each other
         loaded_images = import_ring_array(self.radius_small, self.radius_large, angle, filled=not outline)
-
         self.image_outline = loaded_images if outline else None
         self.image_filled = loaded_images if not outline else None
 
-        if outline:
-            if self.image_outline is None:
-                self.image_outline = create_ring_image(self, outline=True, morph_operations=morph_operations)
-            # Crop Image if necessary
-            if crop_dim != (-1, -1, -1):
-                # self.image_outline = crop_array_around_ring(image, self.crosscut_point, crop_dim=crop_dim)
-                image_array = self.image_outline.get_cropped_image(crop_dim=crop_dim)
-                self.image_outline = RingImage(image_array, self.image_outline.r_small, self.image_outline.r_large,
-                                               self.image_outline.ring_angle, isfilled=False)
-            else:
-                self.image_outline = image
-                # Save image
-                self.image_outline.save()
-            return self.image_outline
+        # Set image object for all consecutive operations
+        image_obj = self.image_outline if outline else self.image_filled
+
+        # If no existing image was found, create a new one with all rotations
+        if image_obj is None:
+            image_obj = create_ring_image(self, outline=outline, morph_operations=morph_operations)
+            generate_all_rotations(r_small=image_obj.r_small, r_large=image_obj.r_large, anglerange=angle)
+
+        # Crop image if necessary and return
+        if crop_dim != (-1, -1, -1):
+            image_array = image_obj.get_cropped_image(crop_dim=crop_dim)
+            return RingImage(image_array, image_obj.r_small, image_obj.r_large,
+                             image_obj.ring_angle, isfilled=False)
         else:
-            if self.image_filled is None:
-                self.image_filled = create_ring_image(self, outline=False, morph_operations=morph_operations)
-            # Crop Image if necessary
-            if crop_dim != (-1, -1, -1):
-                # self.image_filled = crop_array_around_ring(image, self.crosscut_point, crop_dim=crop_dim)
-                image_array =  self.image_filled.get_cropped_image(crop_dim=crop_dim)
-                self.image_filled = RingImage(image_array,  self.image_filled.r_small,  self.image_filled.r_large,
-                                              self.image_filled.ring_angle, isfilled=True)
-            else:
-                self.image_filled = self.image_filled
-                # Save image
-                self.image_filled.save()
-            return self.image_filled
+            return image_obj
 
 
 def create_ring_image(ringcloud: RingPointCloud, outline=True, morph_operations=True,
@@ -309,10 +296,8 @@ def export_ring_array(array, r_small, r_large, ring_angle, array_type="filled"):
 
     if array_type == "filled":
         np.savez_compressed(save_path + '/' + file_prefix + "filled", data=array)
-        # np.save(save_path + '/' + file_prefix + "filled.npy", array)
     elif array_type == "outline":
         np.savez_compressed(save_path + '/' + file_prefix + "outline", data=array)
-        # np.save(save_path + '/' + file_prefix + "outline.npy", array)
     else:
         raise Exception("Array type not recognized")
 
@@ -321,7 +306,14 @@ def generate_all_rotations(r_small, r_large, anglerange=(1, 90)):
     point_cloud = RingPointCloud(r_large, r_small)
     ring_im_obj = point_cloud.get_image(outline=False, morph_operations=True, angle=0)
 
-    for i in range(anglerange[0], anglerange[1]):
-        rot_ring_im_obj = create_rotated_image(ring_im_obj, i)
+    if isinstance(anglerange, int):
+        rot_ring_im_obj = create_rotated_image(ring_im_obj, anglerange)
         rot_ring_im_obj.save()
-        print("Created Ring Image with Rotatation:\t" + str(i))
+        print("Created Ring Image with Rotation:\t" + str(anglerange))
+    elif isinstance(anglerange, (tuple, list, np.ndarray)):
+        for i in range(anglerange[0], anglerange[1]):
+            rot_ring_im_obj = create_rotated_image(ring_im_obj, i)
+            rot_ring_im_obj.save()
+            print("Created Ring Image with Rotation:\t" + str(i))
+    else:
+        raise ValueError("Invalid input type for anglerange")

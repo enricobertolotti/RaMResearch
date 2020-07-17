@@ -2,6 +2,7 @@ from RaMResearch.Utils import Interfaces as intrfce, Scripts as scr
 from RaMResearch.DataIO import LoadData as ld, StoreData as sd
 from RaMResearch.Filters import LegacyFilters as leg_fil
 from RaMResearch.Analysis.Utils import Export as export
+from RaMResearch.Utils import General as general
 
 # from RaMResearch import Filters as fil
 
@@ -51,9 +52,14 @@ def run_analysis(position=True, rotation=False, debug=False, startimage=1, debug
         dicom_array.append(ld.import_normal_DICOM(DICOM_folder=folder_clean_DICOM, DICOM_filename=dicom_filename))
 
         # Get ring size?
+        # TODO Implement get ring size from excel file
+        # TODO create small excel file with just ring sizes
         ring_dim = (27, 100)
 
         if len(dicom_array) >= startimage:
+
+            general.print_divider("DICOM Analysis:\t" + dicom_array[-1].get_name())
+
             # Filter DICOM
             # imageobject, ring_present=True, verticalsigma=7, logsigma=4, gaus1D=True,
             #                   morphological=True, morphkernelsize=3):
