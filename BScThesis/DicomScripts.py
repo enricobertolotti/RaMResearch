@@ -241,7 +241,6 @@ class Dicomimage:
         ss = [rc[2] - size, rc[2] + size, rc[1] - size, rc[1] + size]
 
         for zdepth in range(-layers_to_be_checked, layers_to_be_checked):
-            debug = 1
             array_sum[zdepth + 10] = np.sum(
                 self.filtered_image.get_array()[rc[0] + zdepth, ss[0]:ss[1], ss[2]:ss[3]])
 

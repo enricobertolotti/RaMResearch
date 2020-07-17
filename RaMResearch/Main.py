@@ -28,7 +28,7 @@ def get_dicom_by_angle():
 
 
 # Main analysis code
-def run_analysis(position=True, rotation=False, debug=False, startimage=1):
+def run_analysis(position=True, rotation=False, debug=False, startimage=1, debug_type: list = []):
     def load_dicoms():
         return ld.get_dicom_filepairs(folder_clean_DICOM)
 
@@ -49,29 +49,36 @@ def run_analysis(position=True, rotation=False, debug=False, startimage=1):
 
         # Import DICOM
         dicom_array.append(ld.import_normal_DICOM(DICOM_folder=folder_clean_DICOM, DICOM_filename=dicom_filename))
-        # Filter DICOM
+
+        # Get ring size?
+        ring_dim = (27, 100)
 
         if len(dicom_array) >= startimage:
+            # Filter DICOM
             # imageobject, ring_present=True, verticalsigma=7, logsigma=4, gaus1D=True,
             #                   morphological=True, morphkernelsize=3):
             leg_fil.gauslogfilter(dicom_array[-1], verticalsigma=7, logsigma=4, debug=debug)
 
             # Position analysis
             if position or rotation:
-                dicom_array[-1].run_analysis(analysis_type="contour_analysis", debug=debug)
-                if debug:
+                p_debug = True if debug and "position" in debug_type else False
+                dicom_array[-1].run_analysis(analysis_type="contour_analysis", ring_dim=ring_dim, debug=p_debug)
+                if p_debug:
                     position_debug_view()
 
             # Rotation analysis
             if rotation:
-                dicom_array[-1].run_analysis(analysis_type="rotation_analysis", debug=debug)
+                r_debug = True if debug and "rotation" in debug_type else False
+                dicom_array[-1].run_analysis(analysis_type="rotation_analysis", ring_dim=ring_dim,
+                                             debug=r_debug)
                 rot_anal_obj = dicom_array[-1].get_analysis(analysis_type="rotation_analysis")
                 rot_anal_obj.create_plot(save_path=sd.get_plot_savepath(dicom_array[-1].get_dicom_number()),
-                                         debug=debug)
-                export.export_ring_slices(rot_anal_obj, dicom_array[-1].get_dicom_number(), num_slices=20)
+                                         debug=r_debug)
+                export.export_ring_slices(rot_anal_obj, dicom_array[-1].get_dicom_number(), num_slices=-1,
+                                          debug=r_debug)
         else:
             print("Skipped Image " + str(len(dicom_array)))
 
 
 # Execute functions
-run_analysis(position=True, rotation=True, debug=False)
+run_analysis(position=True, rotation=True, debug=True, debug_type=["rotation"])

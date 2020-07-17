@@ -119,3 +119,14 @@ def print_min_max(array, name=""):
     else:
         print(name + " Max:\t" + str(np.max(array)))
         print(name + " Min:\t" + str(np.min(array)))
+
+
+#################################################### Terminal Functions
+def print_divider(text, spacers=1):
+    divider = "================================================================"
+    print("\n")
+    for i in range(spacers):
+        print(divider)
+    print(text)
+    for i in range(spacers):
+        print(divider)

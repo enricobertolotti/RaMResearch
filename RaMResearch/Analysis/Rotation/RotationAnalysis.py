@@ -26,11 +26,12 @@ class RotationAnalysis:
     angle_plot: plt = None
 
     def __init__(self, image, ring_dim, ring_coord, debug=False):
+        g.print_divider("Rotation Analysis")
         self.reset_parameters()
         self.create_ring(ring_dim)
         self.analysis_image = image
         self.set_ring_crosscut(ring_coord)
-        self.run_analysis(analysis_range=10, step=5, debug=debug)
+        self.run_analysis(analysis_range=180, step=5, debug=debug)
         self.get_export_image()
 
     def reset_parameters(self):
@@ -59,6 +60,9 @@ class RotationAnalysis:
 
     def get_rotated_image(self, angle):
         r_small, r_large = self.ring_cloud.radius_small, self.ring_cloud.radius_large
+        ringobj = rv2.import_ring_array(r_small, r_large, angle, filled=True)
+        if ringobj is None:
+            rv2.generate_all_rotations(r_small=r_small, r_large=r_large, anglerange=(0, 180))
         return rv2.import_ring_array(r_small, r_large, angle, filled=True)
 
     # Return pyplot object of the angle analysis
@@ -150,6 +154,7 @@ class RotationAnalysis:
 
             # Pattern match images
             time1 = time.time()
+
             print("Correlating...")
             crs_corr = arrayops.multiply_w_offset(crs_corr_image, cropped_ring_im,
                                                   self.ring_cross_coord.get_coordinates_int())
@@ -159,7 +164,7 @@ class RotationAnalysis:
             self.angle_results[0][i] = crs_corr_sum
             print("Cross Correlation Sum (Angle " + str(i) + "):\t" + str(crs_corr_sum))
 
-    def get_export_image(self):
+    def get_export_image(self, debug=False):
 
         # Crop ring image to size
         max_crop = []
@@ -170,11 +175,17 @@ class RotationAnalysis:
 
         # Get images needed for export
         base_image = np.zeros(self.analysis_image.shape)
-        ring_image = self.ring_cloud.get_image(outline=False, angle=self.get_max_angle()[0], crop_dim=max_crop).get_image()
+        ring_image = self.ring_cloud.get_image(outline=False, angle=self.get_max_angle()[0], crop_dim=max_crop)\
+            .get_image()
         ri_s = ring_image.shape
 
         # Define Starting Corner
         s_c = np.subtract(ring_pos.get_coordinates_int(), np.divide(max_crop, 2).astype(np.int))
         base_image[s_c[0]:s_c[0]+ri_s[0], s_c[1]:s_c[1]+ri_s[1], s_c[2]:s_c[2]+ri_s[2]] += ring_image
+        base_image = base_image.astype(np.uint8)
+
+        if debug:
+            # Overlay the ring in red
+            intrfc.overelay_view4D(self.analysis_image, overlayarray=base_image, windowName="Ring Overlay View")
 
         return base_image

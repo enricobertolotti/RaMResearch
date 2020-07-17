@@ -161,17 +161,18 @@ class DicomObject:
     def invert_image(self, ring_present: bool):
         self.set_image(255 - self.get_image(ring_present=ring_present).raw_image, ring_present)
 
-    def run_analysis(self, analysis_type="contour_analysis", debug=False):
+    def run_analysis(self, analysis_type="contour_analysis", ring_dim=(27, 200), debug=False):
         if analysis_type == "contour_analysis":
             self.dicomanalysis.set_analysis_result(
-                ca.ContourAnalysis(self.get_image(ring_present=True).get_image(filtered=True), debug=debug))
+                ca.ContourAnalysis(self.get_image(ring_present=True).get_image(filtered=True), ring_dim=ring_dim,
+                                   debug=debug))
         elif analysis_type == "rotation_analysis":
             c_a = self.dicomanalysis.get_analysis_results(analysis_type="contour_analysis")
             if c_a is not None:
                 ring_pos = c_a.get_ring_contour().get_midpoint()
                 self.dicomanalysis.set_analysis_result(
                     ra.RotationAnalysis(self.get_image(ring_present=True).get_image(filtered=False),
-                                        ring_dim=(27, 200), ring_coord=ring_pos, debug=debug))
+                                        ring_dim=ring_dim, ring_coord=ring_pos, debug=debug))
             else:
                 raise Exception("Position analysis doesnt exist yet")
 

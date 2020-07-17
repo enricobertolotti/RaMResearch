@@ -7,7 +7,7 @@ default_folder = "/Users/enricobertolotti/PycharmProjects/BScAssignment/RaMData/
 
 
 # Take a rotation object and export the masks for machine learning
-def export_ring_slices(rot_anal_obj: ra.RotationAnalysis, image_id, num_slices=100):
+def export_ring_slices(rot_anal_obj: ra.RotationAnalysis, image_id, num_slices=100, debug=False):
 
     # Folder & Path preparations:
     subfolder = "ML_Training_Data/" + str(image_id) + "/"
@@ -16,7 +16,7 @@ def export_ring_slices(rot_anal_obj: ra.RotationAnalysis, image_id, num_slices=1
     path_obj.mkdir(parents=True, exist_ok=True)
 
     # Get the export-image
-    export_image = rot_anal_obj.get_export_image().astype(np.uint8)
+    export_image = rot_anal_obj.get_export_image(debug=debug)
 
     # Create a list of depth indexes for the slices to be exported
     z_mid = int(export_image.shape[0] / 2)

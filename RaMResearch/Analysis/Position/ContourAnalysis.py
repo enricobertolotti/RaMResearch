@@ -7,7 +7,7 @@ from RaMResearch.Data import DataStructs as ds
 from itertools import combinations
 from scipy.stats import norm
 import matplotlib.pyplot as plt
-from RaMResearch.Utils.General import BWtoRGB, num_clip, print_min_max
+from RaMResearch.Utils.General import BWtoRGB, num_clip, print_min_max, print_divider
 
 
 # Store a single contour with a center point
@@ -345,13 +345,18 @@ class ContourAnalysis:
     contour_results: [SliceContourAnalysis] = []
 
     # Most likely ring contour sotred as front contour, rear contour
+    ring_dim: tuple = ()
     ring_contour: ContourConnection = None
     ring_contour_certainty: float = 0
 
     # Temporary values
     slice_weight: [float] = np.empty(360)
 
-    def __init__(self, image, debug=False):
+    def __init__(self, image, ring_dim: tuple, debug=False):
+
+        print_divider("Contour Analysis")
+
+        self.ring_dim = ring_dim
 
         # Load in image
         if isinstance(image, ds.Image):
@@ -397,10 +402,14 @@ class ContourAnalysis:
         for i in range(num_slices):
             cntr = self.contour_results[i].get_ring_contour()
             evaluation_array[i] = cntr.get_weight() * self.slice_weight[i] if cntr is not None else 0
-        
-        print("Whole array:\n")
-        for i in range(num_slices):
-            print(str(i) + ":\t" + str(evaluation_array[i]))
+
+        if debug:
+            print("Contour Analysis Slice Weights")
+            max_pos = np.argmax(evaluation_array)
+            for i in range(num_slices):
+                if evaluation_array[i] > 0.0:
+                    max_indicator = "<<<<<<<<<<<<<<< Max Slice" if i == max_pos else ""
+                    print(str(i) + ":\t" + str(evaluation_array[i]) + "\t\t" + max_indicator)
         
         print_min_max(self.slice_weight, name="Weighted Array")
         
@@ -409,6 +418,7 @@ class ContourAnalysis:
         # Store most likely ring contour and its certainty
         self.ring_contour = self.contour_results[max_pos].get_ring_contour()
         self.contour_results[max_pos].set_is_main_ring_contour(True)
+        print("Ring Midpoint:\t" + str(self.contour_results[max_pos].get_ring_contour().get_midpoint()))
 
         if debug:
             for layer_depth in range(num_slices):

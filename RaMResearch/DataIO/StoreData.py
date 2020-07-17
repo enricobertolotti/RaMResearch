@@ -9,7 +9,7 @@ from pathlib import Path as path
 
 root_path = "/RaMData/"
 default_folder = "/Users/enricobertolotti/PycharmProjects/BScAssignment/RaMData/Numpy_Ring_Definitions"
-default_folder_global = "/Users/enricobertolotti/PycharmProjects/BScAssignment/RaMData/"
+
 
 
 def store_ring(ring_obj: rv2.RingPointCloud, folder=default_folder, angle=None):
@@ -138,7 +138,8 @@ def store_dicom_analysis_data(dicom_image: ds.DicomObject, folder="", filename="
 
 # Get path to store rotation analysis_file
 def get_plot_savepath(file_name):
-    global_folder = default_folder_global + "Analysis_Results/"
+    default_folder_plots = "/Users/enricobertolotti/PycharmProjects/BScAssignment/RaMOutput/"
+    global_folder = default_folder_plots + "Analysis_Results/"
     current_round = len(next(os.walk(global_folder))[1]) + 1
     abs_path = global_folder + "Round" + str(current_round) + "/RotationAnalysis/"
     path(abs_path).mkdir(parents=True, exist_ok=True)

@@ -74,9 +74,9 @@ def overelay_view4D(background_array, overlayarray, windowName="TestWindow"):
 
         def get_overlayimage(array1, array2):
             global depth
-            bg_slice = array1[depth, ...].astype(np.int16)
-            overlay = array2[depth, ...].astype(np.int16)
-            return cv2.add(bg_slice, overlay)
+            bg_slice = array1[depth, ...].astype(np.float)
+            overlay = array2[depth, ...].astype(np.float)
+            return np.clip(bg_slice + overlay, 0, 255).astype(np.uint8)
 
         def showimage():
             cv2.imshow(localWindowname, castarray(get_overlayimage(bg_array, frontarray)))
@@ -99,11 +99,10 @@ def overelay_view4D(background_array, overlayarray, windowName="TestWindow"):
 
         cv2.destroyAllWindows()
 
-    overlayview4D(BWtoRGB(background_array), BWtoRGB(overlayarray, True), localWindowname=windowName)
+    overlayview4D(BWtoRGB(background_array), BWtoRGB(overlayarray, pureRed=True), localWindowname=windowName)
 
 
 ######## Plot Functions
-
 def plot1D(yvals, xvals=[], plot_title="Default_Plot"):
 
     # If no x-values were passed to the function take a default range
