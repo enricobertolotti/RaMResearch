@@ -92,6 +92,8 @@ def run_analysis(position_analysis=True, rotation_analysis=False, debug=False, s
                 # Get Image
                 export_image = export.get_ring_mask_image(dim, pos, rot, r_small, r_large)
 
+                intrfce.imageview3d(export_image, windowName="TestImage")
+
                 # Save Image to folder
                 export.ml_export_image(export_image, dicom_id, 100, ring_pos=pos)
 

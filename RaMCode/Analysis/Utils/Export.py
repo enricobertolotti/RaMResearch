@@ -1,14 +1,10 @@
-# from RaMCode.Analysis.Rotation import RotationAnalysis as ra
 from RaMCode.Data.BasicDataStructs import Coordinate as coord
-from RaMCode.Data.RingV2 import RingImage, import_ring_image
+from RaMCode.Data.RingV2 import import_ring_image
 from RaMCode.Utils import General as general
 
 from PIL import Image
 from pathlib import Path as path
 import numpy as np
-
-import time
-
 
 default_folder = "/Users/enricobertolotti/PycharmProjects/BScAssignment/RaMData/"
 
