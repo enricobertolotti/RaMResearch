@@ -1,0 +1,5 @@
+Detected Ring Angle = (7, [17575370.0, (7, 19, 22)])
+130172_First_130172_First_mod_rest
+Detected Ring Angle = (7, [17575370.0, (7, 19, 22)])
+130172_First_130172_First_mod_rest
+Detected Ring Angle = (7, [17575370.0, (7, 19, 22)])

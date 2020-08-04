@@ -1,0 +1,1 @@
+Ring Position = [81, 81, 220]

@@ -1,0 +1,171 @@
+// MDL v1 utf8
+network  {
+  watchlist = ""
+}
+module ImageLoad {
+  internal  {
+    frame = "149 525 120 56"
+    moduleGroupName = ""
+    showNetworkPanel = true
+    windows  {
+      window _default {
+        geometry = "130 716 504 398"
+        sizeHint = "504 398"
+        wasOpen = no
+      }
+    }
+  }
+  fields  {
+    instanceName = ReferenceImage
+    filename = /Users/enricobertolotti/PycharmProjects/BScAssignment/RaMData/Test1Subtraction/130088_First_130088_First(5)_mod_rest.dcm
+    autoLoad = TRUE
+    readRaw = FALSE
+    rawX = 1
+    rawY = 1
+    rawZ = 1
+    rawC = 1
+    rawT = 1
+    rawU = 1
+    dataTypeRaw = "unsigned int8"
+    planarConfig = Contiguous
+    byteOrder = LittleEndian
+    dataOffset = 0
+    pageSizeHint = "0 0 0 0 0 0"
+    suppressErrorLog = FALSE
+    dicomIgnoreHalfVoxelShift = FALSE
+    enableCheckSumTests = FALSE
+  }
+}
+module ImageLoad {
+  internal  {
+    frame = "317 517 136 72"
+    moduleGroupName = ""
+    showNetworkPanel = true
+    windows  {
+      window _default {
+        geometry = "707 422 504 398"
+        sizeHint = "504 398"
+        wasOpen = no
+      }
+    }
+  }
+  fields  {
+    instanceName = MovingImage
+    filename = /Users/enricobertolotti/PycharmProjects/BScAssignment/RaMData/Test1Subtraction/130088_First_130088_First_mod_rest.dcm
+    autoLoad = TRUE
+    readRaw = FALSE
+    rawX = 1
+    rawY = 1
+    rawZ = 1
+    rawC = 1
+    rawT = 1
+    rawU = 1
+    dataTypeRaw = "unsigned int8"
+    planarConfig = Contiguous
+    byteOrder = LittleEndian
+    dataOffset = 0
+    pageSizeHint = "0 0 0 0 0 0"
+    suppressErrorLog = FALSE
+    dicomIgnoreHalfVoxelShift = FALSE
+    enableCheckSumTests = FALSE
+  }
+}
+module itkGradientDescentOptimizer {
+  internal  {
+    frame = "253 149 184 56"
+    moduleGroupName = ""
+    windows  {
+      window _default {
+        geometry = "832 446 325 317"
+        sizeHint = "300 317"
+        wasOpen = yes
+      }
+    }
+  }
+  fields  {
+    instanceName = itkGradientDescentOptimizer
+    maximize = TRUE
+    learningRate = 4
+    numberOfIterations = 100
+    initialPosition = ""
+    scales = ""
+    status = "Error: Metric is not set"
+  }
+}
+module itkMeanSquaresImageToImageMetric {
+  internal  {
+    frame = "313 285 224 56"
+    moduleGroupName = ""
+    windows  {
+      window _default {
+        geometry = "1255 234 490 511"
+        sizeHint = "376 511"
+        wasOpen = yes
+      }
+    }
+  }
+  fields  {
+    instanceName = itkMeanSquaresImageToImageMetric
+    minValue = 0
+    maxValue = 254
+    applyMinMax = FALSE
+    autoSetMinMax = TRUE
+    clampOutImageValues = FALSE
+    lowerOutSideMode = MinValue
+    upperOutSideMode = MaxValue
+    lowerOutSideValue = 0
+    upperOutSideValue = 0
+    status = "Output is invalid"
+    computeGradient = TRUE
+    useCachingOfBSplineWeights = TRUE
+    fixedImageRegion = "0 0 0 0 0 0 -1 -1 -1 0 0 0"
+    useFixedImageIndexes = FALSE
+    numberOfFixedImageSamples = 0
+    numberOfSpatialSamples = 0
+    fixedImageSamplesIntensityThreshold = 0
+    useFixedImageSamplesIntensityThreshold = FALSE
+    useAllPixels = TRUE
+    useSequentialSampling = TRUE
+    updateFixedImageRegion = Always
+  }
+}
+module itkLinearInterpolateImageFunction {
+  internal  {
+    frame = "497 421 208 56"
+    moduleGroupName = ""
+  }
+  fields  {
+    instanceName = itkLinearInterpolateImageFunction
+    status = "Output is valid"
+  }
+}
+module itkTranslationTransform {
+  internal  {
+    frame = "333 421 152 56"
+    moduleGroupName = ""
+    windows  {
+      window _default {
+        geometry = "844 871 322 218"
+        sizeHint = "268 218"
+        wasOpen = yes
+      }
+    }
+  }
+  fields  {
+    instanceName = itkTranslationTransform
+    parameters = "0 0 0 "
+    offset = "0 0 0"
+    status = "Output is valid"
+  }
+}
+connections  {
+  itkGradientDescentOptimizer.inputSingleValuedCostFunction = itkMeanSquaresImageToImageMetric.outputMetric
+  itkGradientDescentOptimizer.optimizationFinished = itkMeanSquaresImageToImageMetric.setOutput
+  itkGradientDescentOptimizer.initialPosition = itkTranslationTransform.getParameters
+  itkMeanSquaresImageToImageMetric.input0 = ReferenceImage.output0
+  itkMeanSquaresImageToImageMetric.input1 = MovingImage.output0
+  itkMeanSquaresImageToImageMetric.inputTransform = itkTranslationTransform.outputTransform
+  itkMeanSquaresImageToImageMetric.inputInterpolator = itkLinearInterpolateImageFunction.outputInterpolator
+  itkMeanSquaresImageToImageMetric.setOutput = itkTranslationTransform.getParameters
+}
+networkModel = ""

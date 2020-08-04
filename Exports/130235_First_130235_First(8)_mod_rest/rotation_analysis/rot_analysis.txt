@@ -1,0 +1,6 @@
+Detected Ring Angle = (0, [4509915.0, (4, 18, 19)])
+Detected Ring Angle = (0, [4509915.0, (4, 18, 19)])
+130235_First_130235_First(8)_mod_rest
+Detected Ring Angle = (0, [4509915.0, (4, 18, 19)])
+130235_First_130235_First(8)_mod_rest
+Detected Ring Angle = (0, [4509915.0, (4, 18, 19)])
