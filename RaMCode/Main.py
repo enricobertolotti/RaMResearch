@@ -2,7 +2,7 @@
 from RaMCode.Data import ManualSegmentation as manseg, DataStructs as ds
 from RaMCode.DataIO import LoadData as ld, StoreData as sd
 from RaMCode.Filters import LegacyFilters as leg_fil
-from RaMCode.Utils import Interfaces as intrfce, Scripts as scr
+from RaMCode.Utils import Interfaces as intrfce, Scripts as scr, General as general
 
 # Miscellaneous Imports
 from typing import List
@@ -10,6 +10,15 @@ from typing import List
 folder_experimental = "../TestImages/CleanUSScanCopy"
 folder_normal_DICOM = "../TestImages/Round 3"
 folder_clean_DICOM = "../RaMData/CleanDicomFiles_Round1"
+
+
+def run(interactive=True):
+    def print_info():
+        general.print_divider("RaM Research - Pessary Analysis", spacers=2)
+
+    
+    def position_analysis():
+        general.print_divider("RaM Research - Pessary Analysis", spacers=2)
 
 
 # Get dicom by angle code
@@ -110,8 +119,8 @@ def get_dicom_by_angle():
 # run_analysis(position_analysis=True, rotation_analysis=False, debug=True, debug_type=["rotation"])
 
 
-def run(position_analysis=True, rotation_analysis=False, ml_export=True,
-        debug_type: List[str] = []):
+def run_obsolete(position_analysis=True, rotation_analysis=False, ml_export=True,
+                 debug_type: List[str] = []):
 
     def run_position_analysis(dicom_image: ds.DicomObject):
         # Define helper function
@@ -182,5 +191,8 @@ def run(position_analysis=True, rotation_analysis=False, ml_export=True,
 # If file is run as main file
 if __name__ == '__main__':
     # Main Function Call
-    run(position_analysis=True, rotation_analysis=False, ml_export=True,
-        debug_type=["position", "rotation"])
+
+    position_analysis()
+
+    run_obsolete(position_analysis=True, rotation_analysis=False, ml_export=True,
+                 debug_type=["position", "rotation"])
