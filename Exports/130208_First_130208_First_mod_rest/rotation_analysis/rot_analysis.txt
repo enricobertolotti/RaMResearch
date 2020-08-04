@@ -1,3 +1,0 @@
-Detected Ring Angle = 6
-Detected Ring Angle = (6, [6635258.0, (2, 21, 25)])
-Detected Ring Angle = (6, [6635258.0, (2, 21, 25)])
