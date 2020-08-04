@@ -1,6 +1,0 @@
-Detected Ring Angle = (-5, [13698565.0, (0, 1, 16)])
-Detected Ring Angle = (-5, [13698565.0, (0, 1, 16)])
-130142_First_130142_First_mod_rest
-Detected Ring Angle = (-5, [13698565.0, (0, 1, 16)])
-130142_First_130142_First_mod_rest
-Detected Ring Angle = (-5, [13698565.0, (0, 1, 16)])

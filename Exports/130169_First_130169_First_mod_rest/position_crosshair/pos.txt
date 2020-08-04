@@ -1,2 +1,0 @@
-Ring Position = [204, 182, 263]
-Ring Position = [204, 182, 263]

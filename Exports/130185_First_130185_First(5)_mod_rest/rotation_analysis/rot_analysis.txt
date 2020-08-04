@@ -1,4 +1,0 @@
-Detected Ring Angle = 23
-Detected Ring Angle = (10, [12793717.0, (5, 14, 15)])
-Detected Ring Angle = (21, (3457765, (6, 13, 15)))
-Detected Ring Angle = (10, [12793717.0, (5, 14, 15)])
