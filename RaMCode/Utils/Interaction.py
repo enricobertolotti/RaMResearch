@@ -3,7 +3,7 @@
 ###########################################################
 from RaMCode.Utils import General as general
 from pathlib import Path as path
-import os
+from RaMCode.DataIO.GeneralUtils import PathObject as pathobj
 
 
 ######## Helper functions #################################
@@ -83,26 +83,65 @@ def get_number(message: str = ""):
     return get_number(message=message)
 
 
-def get_directory(message: str = ""):
+def get_directory(message: str = "", print_file_list=False):
 
-    # Get user input and current working directory
+    # Get user input
     user_input = get_string(message=message)
 
-    # Input Preparations
-    user_input = user_input if user_input[0] == "\\" else user_input[1:]
-
-    # Check if the folder exists
-    full_path = cwd + user_input
-    path_obj = path(full_path)
+    # Create a path object
+    path_obj = pathobj(user_input)
 
     if not path_obj.exists():
         print(get_error_message(message="Path doesn\'t exist"))
+
+    else:
+        test = path_obj.get_path(path_type="full")
+        if print_file_list:
+            for file in path_obj.get_file_list():
+                print(file)
+        return test
+
+
+# Possible list types are int, float or str
+def get_list(message: str = ""):
+
+    # Get user input
+    user_input = get_string(message=message)
+
+    # Split into list elements
+    if not user_input:
+        print(get_error_message(message="Please enter values..."))
+        return get_list(message=message)
+    else:
+        if "," in user_input:
+            input_list = user_input.split(",")
+        elif "&" in message:
+            input_list = user_input.split("&")
+        else:
+            input_list = user_input.split(" ")
+
+    # Read Number in elements
+    try:
+        return_list = [int(x) for x in input_list]
+        return return_list
+    except ValueError:
+        pass
+
+    try:
+        return_list = [float(x) for x in input_list]
+        return return_list
+    except ValueError:
+        pass
+
+    return input_list
 
 
 if __name__ == "__main__":
     general.print_divider("Testing Interaction Functions", spacers=2)
 
-    print(get_boolean(message="Boolean test: ", options=["yes", "no"]))
+    # print(get_boolean(message="Boolean test: ", options=["yes", "no"]))
+    # print(get_number(message="Number test: "))
+    # print(get_directory(message="Folder test: ", print_file_list=True))
 
-    for i in range(3):
-        print(get_number(message="Number test: "))
+    for i in range(4):
+        print(get_list(message="List test: "))

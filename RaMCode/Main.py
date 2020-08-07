@@ -3,6 +3,7 @@ from RaMCode.Data import ManualSegmentation as manseg, DataStructs as ds
 from RaMCode.DataIO import LoadData as ld, StoreData as sd
 from RaMCode.Filters import LegacyFilters as leg_fil
 from RaMCode.Utils import Interfaces as intrfce, Scripts as scr, General as general
+from RaMCode.Utils import Interaction as interaction
 
 # Miscellaneous Imports
 from typing import List
@@ -13,12 +14,40 @@ folder_clean_DICOM = "../RaMData/CleanDicomFiles_Round1"
 
 
 def run(interactive=True):
-    def print_info():
-        general.print_divider("RaM Research - Pessary Analysis", spacers=2)
 
-    
-    def position_analysis():
+    def initialize():
         general.print_divider("RaM Research - Pessary Analysis", spacers=2)
+        print("What code do you want to run?")
+        print("1: Position Analysis\n2: Rotation Analysis\n3: Export Slices For Machine Learning")
+        return interaction.get_list(message="Multiple options are allowed, separated by comma: ")
+
+    def get_working_folder():
+        if interactive and interaction.get_boolean("Do you want to use a custom data folder? (Yes/No): "):
+            cwd = interaction.get_directory(message="Custom Data Folder: ")
+        else:
+            cwd = ld.default_data_folder
+
+    def position_analysis():
+        general.print_divider("Position Analysis", spacers=1)
+        if interactive and interaction.get_boolean("Execute Position Estimation? (Yes/No): "):
+            pass
+
+    def rotation_analysis():
+        general.print_divider("Rotation Analysis", spacers=1)
+
+    def slice_export():
+        pass
+
+    options = initialize()
+
+    if 1 in options:
+        position_analysis()
+
+    if 2 in options:
+        rotation_analysis()
+
+    if 3 in options:
+        slice_export()
 
 
 # Get dicom by angle code
@@ -121,16 +150,16 @@ def get_dicom_by_angle():
 
 def run_obsolete(position_analysis=True, rotation_analysis=False, ml_export=True,
                  debug_type: List[str] = []):
-
     def run_position_analysis(dicom_image: ds.DicomObject):
         # Define helper function
         def position_debug_view():
             test_contours = dicom_array[-1].dicomanalysis.get_analysis_results("contour_analysis").get_image(
-                    with_connections=True, with_contours=True, with_angle=True, with_area=False, with_color=True,
-                    with_height=False, with_midpoint=True, with_length=True, with_weight=True, with_contour_num=True,
-                    threshold=0.1, debug=True)
+                with_connections=True, with_contours=True, with_angle=True, with_area=False, with_color=True,
+                with_height=False, with_midpoint=True, with_length=True, with_weight=True, with_contour_num=True,
+                threshold=0.1, debug=True)
             normal_image = dicom_array[-1].get_image(True).get_image(filtered=False)
             intrfce.imageview3d([test_contours, normal_image], windowName="Test Ring Contour")
+
         # Set debug flag
         debug = True if "position" in debug_type else False
         # Filter dicom image:
@@ -192,7 +221,7 @@ def run_obsolete(position_analysis=True, rotation_analysis=False, ml_export=True
 if __name__ == '__main__':
     # Main Function Call
 
-    position_analysis()
+    run(interactive=True)
 
-    run_obsolete(position_analysis=True, rotation_analysis=False, ml_export=True,
-                 debug_type=["position", "rotation"])
+    # run_obsolete(position_analysis=True, rotation_analysis=False, ml_export=True,
+    #              debug_type=["position", "rotation"])
