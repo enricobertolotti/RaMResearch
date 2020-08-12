@@ -2,7 +2,6 @@
 # A class of utilities for user input
 ###########################################################
 from RaMCode.Utils import General as general
-from pathlib import Path as path
 from RaMCode.DataIO.GeneralUtils import PathObject as pathobj
 
 
@@ -20,7 +19,7 @@ def format_message(message: str):
     return message + " " if not message and message[-1] != " " else message
 
 
-def get_error_message(message= "Input not recognized", options=None, sep=", "):
+def get_error_message(message="Input not recognized", options=None, sep=", "):
     error_msg = "[ERROR] " + message
 
     if options is not None:
@@ -40,12 +39,12 @@ def get_string(message: str = ""):
         return user_input
     else:
         print(get_error_message(message="No input detected"))
-        return get_string()
+        return get_string(message=message)
 
 
 ######## Input functions #################################
-
-def get_boolean(message: str = "", options: list = ["yes", "no"]):
+# Options take a list of strings
+def get_boolean(message: str = "", options=None):
     # Define possible values for the return
     possible_values_true = ["yes", "true", "y"]
     possible_values_false = ["no", "false", "n"]
@@ -93,6 +92,7 @@ def get_directory(message: str = "", print_file_list=False):
 
     if not path_obj.exists():
         print(get_error_message(message="Path doesn\'t exist"))
+        return get_directory(message=message, print_file_list=print_file_list)
 
     else:
         test = path_obj.get_path(path_type="full")
@@ -122,7 +122,7 @@ def get_list(message: str = ""):
 
     # Read Number in elements
     try:
-        return_list = [int(x) for x in input_list]
+        return_list = [int(x) for x in input_list if len(x) > 0]
         return return_list
     except ValueError:
         pass

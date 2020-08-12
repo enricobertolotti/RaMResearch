@@ -1,0 +1,14 @@
+pandas
+imutils
+matplotlib
+scikit_image
+colour
+numpy
+scipy
+tifffile
+pydicom
+Keras
+pyFirmata
+Pillow
+SimpleITK
+skimage

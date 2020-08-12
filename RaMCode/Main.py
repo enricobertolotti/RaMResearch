@@ -1,6 +1,6 @@
 # RaMResearch Imports
 from RaMCode.Data import ManualSegmentation as manseg, DataStructs as ds
-from RaMCode.DataIO import LoadData as ld, StoreData as sd
+from RaMCode.DataIO import LoadData as ld, StoreData as sd, GeneralUtils as gutils_dataio
 from RaMCode.Filters import LegacyFilters as leg_fil
 from RaMCode.Utils import Interfaces as intrfce, Scripts as scr, General as general
 from RaMCode.Utils import Interaction as interaction
@@ -13,7 +13,7 @@ folder_normal_DICOM = "../TestImages/Round 3"
 folder_clean_DICOM = "../RaMData/CleanDicomFiles_Round1"
 
 
-def run(interactive=True):
+def run(interactive=True, debug=False):
 
     def initialize():
         general.print_divider("RaM Research - Pessary Analysis", spacers=2)
@@ -23,28 +23,104 @@ def run(interactive=True):
 
     def get_working_folder():
         if interactive and interaction.get_boolean("Do you want to use a custom data folder? (Yes/No): "):
-            cwd = interaction.get_directory(message="Custom Data Folder: ")
+            data_folder = interaction.get_directory(message="Custom Data Folder: ", print_file_list=debug)
         else:
-            cwd = ld.default_data_folder
+            data_folder = gutils_dataio.get_default_file_folder(folder_type="data")
+        if debug:
+            print("Data Folder:\t" + data_folder)
+        return data_folder
 
+    # cwd is absolute path to the directory and should be set before calling function
+    def get_dicom_file_list():
+        if interactive and interaction.get_boolean("Do you want to analyse all dicoms? (Yes/No): "):
+            return ld.get_dicom_filepaths(cwd)
+        elif interactive:
+            return interaction.get_number(message="Enter Dicom ID: (The number at the start of the dicom filename): ")
+
+    def load_dicom(dicom_filepath):
+        return ld.import_normal_DICOM(DICOM_filepath=dicom_filepath)
+
+    def load_manual_segmentation():
+        if interactive and interaction.get_boolean(message="Use Custom Manual Segmentation File Location? (Yes/No): "):
+            file_path = interaction.get_directory(message="Custom Manual Segmentation File Location: ")
+        else:
+            file_path = gutils_dataio.get_default_file_folder(folder_type="segmentation")
+        return manseg.ManualSegmentation(file_path_csv=file_path)
+
+    # Main Position Analysis Function
     def position_analysis():
+
+        # Helper functions:
+        def position_debug_view(dicom_object: ds.DicomObject):
+            debug_contours = dicom_object.dicomanalysis.get_analysis_results("contour_analysis").get_image(
+                with_connections=True, with_contours=True, with_angle=True, with_area=False, with_color=True,
+                with_height=False, with_midpoint=True, with_length=True, with_weight=True, with_contour_num=True,
+                threshold=0.1, debug=True)
+            normal_image = dicom_object.get_image(True).get_image(filtered=False)
+            intrfce.imageview3d([debug_contours, normal_image], windowName="Test Ring Contour")
+
         general.print_divider("Position Analysis", spacers=1)
         if interactive and interaction.get_boolean("Execute Position Estimation? (Yes/No): "):
-            pass
+            dicom_files = get_dicom_file_list()
+            for file_path in dicom_files:
+                # Import dicom
+                dicom_obj = load_dicom(dicom_filepath=file_path)
 
+                # Perform analysis
+                # 1. Filter dicom image:
+                leg_fil.gauslogfilter(dicom_obj, verticalsigma=7, logsigma=4, debug=debug)
+
+                # 2. Get values required for analysis
+                dicom_id = dicom_obj.get_dicom_number()
+                ring_dim = man_seg_obj.get_ring_dim(dicom_id=dicom_id)
+
+                # 3. Run contour analysis
+                dicom_obj.run_analysis(analysis_type="contour_analysis", ring_dim=ring_dim, debug=debug)
+
+                # If debug show the image
+                if debug:
+                    position_debug_view(dicom_obj)
+
+                # Store dicom in array for further analysis (rotation, export etc.. )
+                dicom_obj_array.append(dicom_obj)
+
+    # Main Rotation Analysis Function
     def rotation_analysis():
         general.print_divider("Rotation Analysis", spacers=1)
 
+    def store_analysis_data():
+
+        general.print_divider(text="Saving Data....")
+
+        for dicom_obj in dicom_obj_array:
+            dicom_id = dicom_obj.get_dicom_number()
+            res_dict = dicom_obj.get_analysis_object().get_simple_result()
+
+            # Get individual variables
+            man_seg_obj.set_position(dicom_id, res_dict['pos'], man_seg=False)
+            man_seg_obj.set_rotation(dicom_id, rotation=res_dict['rot'], man_seg=False)
+
+    # Main Export Function
     def slice_export():
         pass
 
     options = initialize()
+    general.insert_spacer(spacers=1)
+
+    cwd = get_working_folder()
+
+    man_seg_obj = load_manual_segmentation()
+
+    dicom_obj_array = []
 
     if 1 in options:
         position_analysis()
 
     if 2 in options:
         rotation_analysis()
+
+    if 1 in options or 2 in options:
+        store_analysis_data()
 
     if 3 in options:
         slice_export()
@@ -221,7 +297,7 @@ def run_obsolete(position_analysis=True, rotation_analysis=False, ml_export=True
 if __name__ == '__main__':
     # Main Function Call
 
-    run(interactive=True)
+    run(interactive=True, debug=False)
 
     # run_obsolete(position_analysis=True, rotation_analysis=False, ml_export=True,
     #              debug_type=["position", "rotation"])

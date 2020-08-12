@@ -91,6 +91,11 @@ class AnalysisObject:
         else:
             raise Exception("Analysis type doesnt exist yet: contour_analysis or rotation_analysis")
 
+    def get_simple_result(self):
+        ring_pos = None if self.contour_analysis else self.contour_analysis.get_ring_position()
+        rot_angle = None if self.rotation_analysis else self.rotation_analysis.get_angle_result()
+        return {'pos': ring_pos, 'rot': rot_angle}
+
 
 # Main class to handle dicom images
 class DicomObject:
@@ -113,12 +118,12 @@ class DicomObject:
     image_with_ring: Image = None
 
     # Objects
-    manualsegmentation: manseg.ManualSegmentation = None
+    # manualsegmentation: manseg.ManualSegmentation = None
     dicomanalysis: AnalysisObject = None
 
     def __init__(self, name):
         self.name = name
-        self.import_manual_segmentation_results()
+        # self.import_manual_segmentation_results()
         self.dicomanalysis = AnalysisObject()
 
     def get_image(self, ring_present: bool = True):
@@ -142,12 +147,12 @@ class DicomObject:
         else:
             return self.metadata_no_ring
 
-    def import_manual_segmentation_results(self):
-        dicom_id = int(self.get_dicom_number())
-        self.manualsegmentation = manseg.ManualSegmentation(dicom_ID=dicom_id)
+    # def import_manual_segmentation_results(self):
+    #     dicom_id = int(self.get_dicom_number())
+    #     self.manualsegmentation = manseg.ManualSegmentation(dicom_ID=dicom_id)
 
-    def get_manual_segmentation(self):
-        return self.manualsegmentation
+    # def get_manual_segmentation(self):
+    #     return self.manualsegmentation
 
     def set_image(self, image, ring_present: bool):
         if ring_present:
@@ -162,7 +167,7 @@ class DicomObject:
     def set_name(self, name):
         self.name = name
         
-    def set_metadata(self, metadata: DicomMetadata, ring_present: bool):
+    def set_metadata(self, metadata, ring_present: bool):
         if ring_present:
             self.metadata_with_ring = metadata
         else:
@@ -188,3 +193,6 @@ class DicomObject:
 
     def get_analysis(self, analysis_type="contour_analysis"):
         return self.dicomanalysis.get_analysis_results(analysis_type)
+
+    def get_analysis_object(self):
+        return self.dicomanalysis

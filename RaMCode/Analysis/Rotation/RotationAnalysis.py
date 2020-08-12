@@ -101,7 +101,7 @@ class RotationAnalysis:
             plt.clf()
 
     # Returns a tuple with (alpha-rot, beta-rot)
-    def get_max_angle(self):
+    def get_angle_result(self):
         return np.unravel_index(np.argmax(self.angle_results, axis=None), self.angle_results.shape)
 
     # Main analysis code
@@ -176,7 +176,7 @@ class RotationAnalysis:
 
         # Get the background image & the ring image with the right angle
         base_image = np.zeros(self.analysis_image.shape)
-        ring_image = self.ring_cloud.get_image(outline=False, angle=self.get_max_angle()[0], crop_dim=max_crop)\
+        ring_image = self.ring_cloud.get_image(outline=False, angle=self.get_angle_result()[0], crop_dim=max_crop)\
             .get_image()
 
         # Define Starting Corner

@@ -4,6 +4,7 @@ from pathlib import Path
 default_data_folder = "/RaMData"
 default_code_fodler = "/RaMCode"
 default_output_folder = "/RaMOutput"
+default_man_seg_filepath = "/RaMData/Manual_Segmentation/Manual_Segmentation_Results.csv"
 
 
 class PathObject:
@@ -55,11 +56,19 @@ def get_windows_path(path_str):
     return path_str.replace("/", "\\")
 
 
-def get_root_path():
-    return str(Path.cwd().parent.parent.parent)
+def get_root_path(tree_depth=1):
+    path = Path.cwd()
+    for i in range(tree_depth):
+        path = path.parent
+    return str(path)
 
 
-def get_default_folder(folder_type="Data"):
+def get_default_file_folder(folder_type="data"):
     if "data" in folder_type.lower():
         full_path = prepare_path(get_root_path()) + default_data_folder
-        return get_windows_path(full_path) if get_is_windows() else full_path
+    elif "segmentation" in folder_type.lower():
+        full_path = prepare_path(get_root_path()) + default_man_seg_filepath
+    else:
+        raise Exception("Folder or file doesnt have a default")
+
+    return get_windows_path(full_path) if get_is_windows() else full_path

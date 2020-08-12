@@ -136,10 +136,15 @@ def print_min_max(array, name=""):
 
 #################################################### Terminal Functions
 def print_divider(text, spacers=1):
-    divider = "================================================================"
+    divider = "======================="
     print("\n")
     for i in range(spacers):
         print(divider)
     print(text)
     for i in range(spacers):
         print(divider)
+
+
+def insert_spacer(spacers=1):
+    for i in range(spacers):
+        print(" ")

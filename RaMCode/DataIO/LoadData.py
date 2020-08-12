@@ -17,36 +17,23 @@ def get_dicom_filepairs(foldername):
     return list(map(lambda filename: (filename + ".dcm", filename + ".tif"), full_path))
 
 
-def import_normal_DICOM(DICOM_folder, DICOM_filename="", DICOM_image_ID=""):
+def import_normal_DICOM(DICOM_filepath: str = None):
 
-    # Remove .dcm ending if necessary
-    DICOM_filename = DICOM_filename.split(".dcm")[0] if ".dcm" in DICOM_filename else DICOM_filename
+    # Get dicom ID from path
+    dicomID = DICOM_filepath.split("/")[-1].split("_")[0]
 
-    # Remove path if necessary
-    DICOM_filename = DICOM_filename.split("/")[-1] if "/" in DICOM_filename else DICOM_filename
+    # Create DICOM Object and load data
+    dicomobject = DicomObject(dicomID)
+    dicomobject.set_metadata(pd.dcmread(DICOM_filepath.replace(".dcm", "") + ".dcm"), ring_present=True)
 
-    # Find the dicom file in the folder if required
-    if len(DICOM_image_ID) > 0:
-        dcm_infolder = [os.path.splitext(filename)[0] for filename in os.listdir(DICOM_folder) if
-                        filename.endswith(".dcm") and DICOM_image_ID in filename]
-        if len(dcm_infolder) > 0:
-            DICOM_filename = dcm_infolder[0]
+    # TODO clean this up
+    # excelfile_properties = ld.load_excel_properties(dicom_id=dicomID)
+    #
+    # dicomobject.set_
 
-    # If the filename was left empty
-    if not DICOM_filename:
-        dcm_infolder = [os.path.splitext(filename)[0] for filename in os.listdir(DICOM_folder) if
-                        filename.endswith(".dcm")]
-        DICOM_filename = dcm_infolder[0]
-
-    dicomobject = DicomObject(DICOM_filename)
-
-    # Import and set the array
-    dicom_file_path = DICOM_folder + '/' + DICOM_filename
-
-    dicomobject.set_metadata(pd.dcmread(dicom_file_path + ".dcm"), ring_present=True)
-    dicomobject.set_image(tf.imread(dicom_file_path + ".tif"), ring_present=True)
-
+    dicomobject.set_image(tf.imread(DICOM_filepath.replace(".dcm", "") + ".tif"), ring_present=True)
     dicomobject.transpose_images()
+
     return dicomobject
 
 
@@ -102,29 +89,24 @@ def import_numpy_mask(dimensions, folder=""):
         return None
 
 
-def import_dicom(dicom_id=None):
-
-    # Paths to where dicom files are stored
-    rootfolder = "/Users/enricobertolotti/PycharmProjects/BScAssignment"
-    dicom_folders = ["/TestImages/", "/RaMData/CleanDicomFiles_Round1/"]
+def get_dicom_filepaths(data_folder="", dicom_id=None):
 
     # Returns (folder, dicom_filename)
     def search_dicom():
+        result = []
         # loop through folders and check if there is a file that matches the pattern
-        for folder in dicom_folders:
-            fullpath = rootfolder + folder
-            result = []
-            for root, dirs, files in os.walk(fullpath):
-                for name in files:
-                    match_name = str(dicom_id) + "*.dcm"
-                    if fnmatch.fnmatch(name, match_name):
-                        result.append(os.path.join(root, name))
-            # Return Occurance if found
-            if result:
-                return result
+        for root, dirs, files in os.walk(data_folder):
+            for name in files:
+                match_name = "*.dcm"
+                if fnmatch.fnmatch(name, match_name):
+                    result.append(os.path.join(root, name))
+        return result
+
+    complete_dicom_list = search_dicom()
 
     # Search for the dicom file in the folders if a dicom_id is given
-    if dicom_id is not None:
-        return search_dicom()
+    if dicom_id:
+        return [[file_path for file_path in complete_dicom_list if str(dicom_id) in file_path][0]]
 
     # Otherwise return complete list of dicom files
+    return complete_dicom_list
