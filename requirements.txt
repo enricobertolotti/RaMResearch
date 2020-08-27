@@ -7,8 +7,4 @@ numpy
 scipy
 tifffile
 pydicom
-Keras
-pyFirmata
 Pillow
-SimpleITK
-skimage
