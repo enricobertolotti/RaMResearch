@@ -53,7 +53,9 @@ def prepare_path(path_str: str = ""):
 
 
 def get_windows_path(path_str):
-    return path_str.replace("/", "\\")
+    windows_pth = path_str.replace("/", "\\")
+    windows_pth = windows_pth[1:] if windows_pth[0] == "\\" else windows_pth
+    return windows_pth
 
 
 def get_root_path(tree_depth=1):
@@ -72,3 +74,7 @@ def get_default_file_folder(folder_type="data"):
         raise Exception("Folder or file doesnt have a default")
 
     return get_windows_path(full_path) if get_is_windows() else full_path
+
+
+if __name__ == "__main__":
+    print(get_windows_path(get_root_path(3)))
