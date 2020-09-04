@@ -28,14 +28,15 @@ class ManualSegmentation:
         try:
             csv_dict["Dicom_ID"].values()
         except KeyError:
-            self.csvfile = pd.read_csv(self.file_path, header=0, delimiter="")
+            self.csvfile = pd.read_csv(self.file_path, header=0, delimiter=",")
             csv_dict = self.csvfile.to_dict()
 
         self.man_seg_dict = csv_dict
 
     def add_dicomid(self, dicom_id):
         if not (dicom_id in self.csvfile):
-            self.csvfile.append(pd.Series([dicom_id]), ignore_index=True)
+            self.csvfile = self.csvfile.append({'Dicom_ID' : dicom_id}, ignore_index=True)
+            self.csvfile["Dicom_ID"] = self.csvfile["Dicom_ID"].astype(int)
             self.csvfile.sort_values(by="Dicom_ID", inplace=True)
         self.update()
 
@@ -51,7 +52,8 @@ class ManualSegmentation:
                 return key
 
         # Dicom ID wasnt found, create a new line
-        raise Exception("Could not find Dicom ID in manual segmentiation file")
+        # raise Exception("Could not find Dicom ID in manual segmentiation file")
+        self.add_dicomid(dicom_id)
 
     def get_file_path(self):
         return self.file_path
@@ -94,8 +96,11 @@ class ManualSegmentation:
         # Update after changing the dataframe
         self.update()
 
+    def get_dict(self):
+        return self.man_seg_dict
+
     def update(self):
-        self.csvfile.to_csv(self.file_path)
+        self.csvfile.to_csv(self.file_path, index=False)
         self.loadCSV()
 
 
@@ -103,6 +108,7 @@ def run(file_path):
     # Load data
     man_seg_obj = ManualSegmentation(file_path_csv=file_path)
 
+    # Print List of dicoms in the csv file
     print(man_seg_obj.get_dicom_list())
 
     # Get Rotation
@@ -118,7 +124,7 @@ def run(file_path):
     print("Position: " + str(pos))
 
     # Set position
-    # man_seg_obj.set_position(dicom_id=130113, position=[-1, -1, -1])
+    man_seg_obj.set_position(dicom_id=130153, position=[-1, -1, -1])
     
     # Append testvalue
     man_seg_obj.add_dicomid(dicom_id=200000)
@@ -126,6 +132,5 @@ def run(file_path):
 
 # Tests for the data import
 if __name__ == "__main__":
-    file_pth = "/Users/enricobertolotti/PycharmProjects/BScAssignment/RaMData/Manual_Segmentation" \
-                "/Manual_Segmentation_Results.csv"
+    file_pth = "/Users/enricobertolotti/Documents/Current Projects/RaMResearch/BScAssignment/RaMData/Manual_Segmentation/Manual_Segmentation_Results.csv"
     run(file_path=file_pth)
