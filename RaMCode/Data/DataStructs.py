@@ -3,6 +3,7 @@ from copy import deepcopy as dpcopy
 from RaMCode.Analysis.Position import ContourAnalysis as ca
 from RaMCode.Analysis.Rotation import RotationAnalysis as ra
 from RaMCode.Data import ManualSegmentation as manseg
+from RaMCode.Analysis.Position import ContourAnalysis
 
 
 # Class to handle all image related tasks
